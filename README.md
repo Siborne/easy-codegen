@@ -1,5 +1,12 @@
 # codegen-java Java代码生成器
 
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](#)
+[![GitHub issues](https://img.shields.io/github/issues/Siborne/doupo-take-out.svg)](https://github.com/Siborne/doupo-take-out/issues)
+[![GitHub stars](https://img.shields.io/github/stars/Siborne/doupo-take-out.svg)](https://github.com/Siborne/doupo-take-out/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/Siborne/doupo-take-out.svg)](https://github.com/Siborne/doupo-take-out/network)
+
+
 ## 介绍
 codegen-java 是一个 Java 代码生成器，用于根据数据库表结构自动生成对应的 Java 实体类、Mapper 接口及 XML 映射文件等。它设计用来简化开发过程中繁琐的重复性代码编写工作。
 
