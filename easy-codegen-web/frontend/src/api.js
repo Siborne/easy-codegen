@@ -15,11 +15,29 @@ export const api = {
   saveConfig: (config) => request('/config', { method: 'POST', body: JSON.stringify(config) }),
   testConnection: () => request('/connection/test', { method: 'POST' }),
   listTables: () => request('/tables', { method: 'POST' }),
-  generate: (config, tables) =>
+  generate: (config, tables, types) =>
     request('/generate', {
       method: 'POST',
-      body: JSON.stringify({ config, tables })
+      body: JSON.stringify({ config, tables, types })
     }),
+  preview: (config, tables, types) =>
+    request('/preview', {
+      method: 'POST',
+      body: JSON.stringify({ config, tables, types })
+    }),
+  download: async (config, tables, types) => {
+    const resp = await fetch('/api/generate/download', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ config, tables, types })
+    });
+    const contentType = resp.headers.get('Content-Type') || '';
+    if (contentType.includes('application/json')) {
+      const err = await resp.json();
+      throw new Error(err.message || '下载失败');
+    }
+    return resp.blob();
+  },
   listTemplates: () => request('/templates'),
   saveTemplate: (name, config) =>
     request('/templates/' + encodeURIComponent(name), { method: 'POST', body: JSON.stringify(config) }),
