@@ -4,6 +4,8 @@ server:
 codegen:
   # 代码生成配置文件路径（默认指向仓库内核心模块配置；部署时可覆盖 CODEGEN_CONFIG_FILE 环境变量）
   config-file: ${CODEGEN_CONFIG_FILE:../codegen-java/src/main/resources/application.properties}
+  # 配置模板存储目录（部署时可覆盖 CODEGEN_TEMPLATE_DIR 环境变量）
+  template-dir: ${CODEGEN_TEMPLATE_DIR:./config-templates}
 
 spring:
   jackson:
