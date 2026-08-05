@@ -44,6 +44,10 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <!-- classifier=exec: 产出可执行 fat jar (xxx-exec.jar)，主 jar 保持普通 jar 可供 desktop 模块作为库依赖 -->
+                <configuration>
+                    <classifier>exec</classifier>
+                </configuration>
             </plugin>
         </plugins>
     </build>

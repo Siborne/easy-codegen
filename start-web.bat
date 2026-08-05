@@ -3,7 +3,7 @@ chcp 65001 >nul
 title Easy-Codegen Web Panel Launcher
 cd /d %~dp0
 
-set BACKEND_JAR=easy-codegen-web\target\easy-codegen-web-1.0-SNAPSHOT.jar
+set BACKEND_JAR=easy-codegen-web\target\easy-codegen-web-1.0-SNAPSHOT-exec.jar
 set BACKEND_PORT=9000
 
 if not exist "%BACKEND_JAR%" (
