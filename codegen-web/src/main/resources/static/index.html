@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Codegen-Java 可视化面板</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+            background: #f5f7fa;
+            color: #333;
+            padding: 20px;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .header h1 { font-size: 22px; }
+        .header .status { font-size: 13px; color: #888; }
+        .card {
+            background: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 4px rgba(0,0,0,.08);
+        }
+        .card h2 {
+            font-size: 16px;
+            margin-bottom: 14px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 12px;
+        }
+        .field label {
+            display: block;
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+        .field input, .field select {
+            width: 100%;
+            padding: 7px 10px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 13px;
+            font-family: Consolas, monospace;
+        }
+        .field input:focus { outline: none; border-color: #409eff; }
+        .field.wide { grid-column: 1 / -1; }
+        .actions { display: flex; gap: 10px; }
+        button {
+            padding: 8px 18px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .btn-primary { background: #409eff; color: #fff; }
+        .btn-primary:hover { background: #66b1ff; }
+        .btn-plain { background: #ecf5ff; color: #409eff; border: 1px solid #b3d8ff; }
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 16px;
+            border-radius: 4px;
+            color: #fff;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity .3s;
+            z-index: 999;
+        }
+        .toast.show { opacity: 1; }
+        .toast.ok { background: #67c23a; }
+        .toast.err { background: #f56c6c; }
+        .meta { font-size: 12px; color: #999; margin-top: 10px; word-break: break-all; }
+    </style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<div class="header">
+    <h1>🔧 Codegen-Java 可视化面板</h1>
+    <div class="status" id="configFile"></div>
+</div>
+
+<!-- 数据库连接 -->
+<div class="card">
+    <h2>数据库连接</h2>
+    <div class="grid">
+        <div class="field wide"><label>驱动类 (db.driver.name)</label><input data-key="db.driver.name"></div>
+        <div class="field wide"><label>连接 URL (db.url)</label><input data-key="db.url"></div>
+        <div class="field"><label>用户名 (db.username)</label><input data-key="db.username"></div>
+        <div class="field"><label>密码 (db.password)</label><input type="password" data-key="db.password"></div>
+    </div>
+</div>
+
+<!-- 生成参数 -->
+<div class="card">
+    <h2>生成参数</h2>
+    <div class="grid">
+        <div class="field"><label>作者 (author.comment)</label><input data-key="author.comment"></div>
+        <div class="field"><label>忽略表名前缀 (ignore.table.prefix)</label>
+            <select data-key="ignore.table.prefix">
+                <option value="false">false</option>
+                <option value="true">true</option>
+            </select>
+        </div>
+        <div class="field"><label>忽略 JSON 字段 (ignore.bean.tojson.field)</label><input data-key="ignore.bean.tojson.field"></div>
+        <div class="field"><label>忽略注解 (ignore.bean.tojson.expression)</label><input data-key="ignore.bean.tojson.expression"></div>
+        <div class="field wide"><label>忽略注解 import (ignore.bean.tojson.class)</label><input data-key="ignore.bean.tojson.class"></div>
+        <div class="field wide"><label>日期序列化表达式 (bean.date.format.expression)</label><input data-key="bean.date.format.expression"></div>
+        <div class="field wide"><label>日期序列化 import (bean.date.format.class)</label><input data-key="bean.date.format.class"></div>
+        <div class="field wide"><label>日期反序列化表达式 (bean.date.unformat.expression)</label><input data-key="bean.date.unformat.expression"></div>
+        <div class="field wide"><label>日期反序列化 import (bean.date.unformat.class)</label><input data-key="bean.date.unformat.class"></div>
+        <div class="field"><label>查询 Bean 后缀 (suffix.bean.query)</label><input data-key="suffix.bean.query"></div>
+        <div class="field"><label>模糊搜索后缀 (suffix.bean.query.fuzzy)</label><input data-key="suffix.bean.query.fuzzy"></div>
+        <div class="field"><label>开始时间后缀 (suffix.bean.query.time.start)</label><input data-key="suffix.bean.query.time.start"></div>
+        <div class="field"><label>结束时间后缀 (suffix.bean.query.time.end)</label><input data-key="suffix.bean.query.time.end"></div>
+        <div class="field"><label>Mapper 后缀 (suffix.mappers)</label><input data-key="suffix.mappers"></div>
+    </div>
+</div>
+
+<!-- 输出与包名 -->
+<div class="card">
+    <h2>输出与包名</h2>
+    <div class="grid">
+        <div class="field wide"><label>输出根路径 (path.base)</label><input data-key="path.base"></div>
+        <div class="field wide"><label>根包名 (package.base)</label><input data-key="package.base"></div>
+        <div class="field"><label>PO 包 (package.po)</label><input data-key="package.po"></div>
+        <div class="field"><label>Query 包 (package.query)</label><input data-key="package.query"></div>
+        <div class="field"><label>VO 包 (package.vo)</label><input data-key="package.vo"></div>
+        <div class="field"><label>工具包 (package.utils)</label><input data-key="package.utils"></div>
+        <div class="field"><label>枚举包 (package.enums)</label><input data-key="package.enums"></div>
+        <div class="field"><label>异常包 (package.exception)</label><input data-key="package.exception"></div>
+        <div class="field"><label>Mapper 包 (package.mappers)</label><input data-key="package.mappers"></div>
+        <div class="field"><label>Service 包 (package.service)</label><input data-key="package.service"></div>
+        <div class="field"><label>ServiceImpl 包 (package.service.impl)</label><input data-key="package.service.impl"></div>
+        <div class="field"><label>Controller 包 (package.controller)</label><input data-key="package.controller"></div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="actions">
+        <button class="btn-primary" onclick="saveConfig()">💾 保存配置</button>
+        <button class="btn-plain" onclick="loadConfig()">🔄 重新加载</button>
+    </div>
+    <div class="meta" id="configFileMeta"></div>
+</div>
+
+<script>
+    var toastTimer = null;
+    function toast(msg, ok) {
+        var el = document.getElementById('toast');
+        el.textContent = msg;
+        el.className = 'toast show ' + (ok ? 'ok' : 'err');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () { el.className = 'toast'; }, 3000);
+    }
+
+    function loadConfig() {
+        fetch('/api/config')
+            .then(function (r) { return r.json(); })
+            .then(function (res) {
+                if (!res.success) { toast(res.message || '读取配置失败', false); return; }
+                var data = res.data || {};
+                document.querySelectorAll('[data-key]').forEach(function (el) {
+                    var key = el.getAttribute('data-key');
+                    if (data[key] !== undefined) el.value = data[key];
+                });
+                var file = res.file || '';
+                document.getElementById('configFile').textContent = '配置文件: ' + file;
+                document.getElementById('configFileMeta').textContent = '配置文件: ' + file;
+                toast('配置已加载', true);
+            })
+            .catch(function (e) { toast('加载失败: ' + e.message, false); });
+    }
+
+    function saveConfig() {
+        var data = {};
+        document.querySelectorAll('[data-key]').forEach(function (el) {
+            data[el.getAttribute('data-key')] = el.value.trim();
+        });
+        fetch('/api/config', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+            .then(function (r) { return r.json(); })
+            .then(function (res) {
+                if (res.success) { toast('配置已保存并生效', true); }
+                else { toast(res.message || '保存失败', false); }
+            })
+            .catch(function (e) { toast('保存失败: ' + e.message, false); });
+    }
+
+    loadConfig();
+</script>
+</body>
+</html>
