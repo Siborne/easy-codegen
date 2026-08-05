@@ -54,7 +54,8 @@
         }
         .field input:focus { outline: none; border-color: #409eff; }
         .field.wide { grid-column: 1 / -1; }
-        .actions { display: flex; gap: 10px; }
+        .actions { display: flex; gap: 10px; flex-wrap: wrap; }
+        .actions .spacer { flex: 1; }
         button {
             padding: 8px 18px;
             border: none;
@@ -62,9 +63,61 @@
             font-size: 14px;
             cursor: pointer;
         }
+        button:disabled { opacity: .5; cursor: not-allowed; }
         .btn-primary { background: #409eff; color: #fff; }
-        .btn-primary:hover { background: #66b1ff; }
+        .btn-primary:hover:not(:disabled) { background: #66b1ff; }
+        .btn-success { background: #67c23a; color: #fff; }
+        .btn-success:hover:not(:disabled) { background: #85ce61; }
         .btn-plain { background: #ecf5ff; color: #409eff; border: 1px solid #b3d8ff; }
+        .btn-danger { background: #f56c6c; color: #fff; }
+        .conn-result { font-size: 13px; margin-top: 10px; }
+        .conn-result.ok { color: #67c23a; }
+        .conn-result.err { color: #f56c6c; }
+        .table-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .table-bar .count { font-size: 13px; color: #888; }
+        .table-list {
+            border: 1px solid #ebeef5;
+            border-radius: 4px;
+            max-height: 300px;
+            overflow: auto;
+        }
+        .table-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-bottom: 1px solid #f0f2f5;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        .table-item:last-child { border-bottom: none; }
+        .table-item:hover { background: #f5f7fa; }
+        .table-item .tname { font-family: Consolas, monospace; font-weight: 600; min-width: 160px; }
+        .table-item .tbean { font-family: Consolas, monospace; color: #409eff; min-width: 140px; }
+        .table-item .tcomment { color: #999; }
+        .empty-tip { padding: 20px; text-align: center; color: #aaa; font-size: 13px; }
+        .log-area {
+            background: #282c34;
+            color: #d7dae0;
+            border-radius: 6px;
+            padding: 12px;
+            font-family: Consolas, monospace;
+            font-size: 12px;
+            max-height: 320px;
+            overflow: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+            margin-top: 12px;
+            display: none;
+        }
+        .log-area.show { display: block; }
+        .log-area .ok { color: #98c379; }
+        .log-area .err { color: #e06c75; }
         .toast {
             position: fixed;
             top: 20px;
@@ -101,6 +154,12 @@
         <div class="field"><label>用户名 (db.username)</label><input data-key="db.username"></div>
         <div class="field"><label>密码 (db.password)</label><input type="password" data-key="db.password"></div>
     </div>
+    <div class="actions" style="margin-top: 14px;">
+        <button class="btn-plain" onclick="testConnection()">🔌 测试连接</button>
+        <button class="btn-primary" onclick="saveConfig()">💾 保存配置</button>
+        <button class="btn-plain" onclick="loadConfig()">🔄 重新加载</button>
+    </div>
+    <div class="conn-result" id="connResult"></div>
 </div>
 
 <!-- 生成参数 -->
@@ -148,22 +207,52 @@
     </div>
 </div>
 
+<!-- 数据表 -->
 <div class="card">
-    <div class="actions">
-        <button class="btn-primary" onclick="saveConfig()">💾 保存配置</button>
-        <button class="btn-plain" onclick="loadConfig()">🔄 重新加载</button>
+    <h2>数据表</h2>
+    <div class="table-bar">
+        <div class="count" id="tableCount">尚未加载表</div>
+        <div class="actions">
+            <button class="btn-plain" onclick="loadTables()">📋 加载表列表</button>
+            <button class="btn-plain" onclick="selectAll(true)">全选</button>
+            <button class="btn-plain" onclick="selectAll(false)">全不选</button>
+        </div>
     </div>
-    <div class="meta" id="configFileMeta"></div>
+    <div class="table-list" id="tableList">
+        <div class="empty-tip">点击"加载表列表"获取当前数据库的表</div>
+    </div>
 </div>
+
+<!-- 代码生成 -->
+<div class="card">
+    <h2>代码生成</h2>
+    <div class="actions">
+        <button class="btn-success" onclick="generate()">🚀 一键生成</button>
+        <span style="font-size: 13px; color: #999; align-self: center;">未勾选任何表时，将生成全部表</span>
+    </div>
+    <div class="log-area" id="logArea"></div>
+</div>
+
+<div class="meta" id="configFileMeta"></div>
 
 <script>
     var toastTimer = null;
+    var tableData = [];
+
     function toast(msg, ok) {
         var el = document.getElementById('toast');
         el.textContent = msg;
         el.className = 'toast show ' + (ok ? 'ok' : 'err');
         clearTimeout(toastTimer);
         toastTimer = setTimeout(function () { el.className = 'toast'; }, 3000);
+    }
+
+    function collectConfig() {
+        var data = {};
+        document.querySelectorAll('[data-key]').forEach(function (el) {
+            data[el.getAttribute('data-key')] = el.value.trim();
+        });
+        return data;
     }
 
     function loadConfig() {
@@ -176,23 +265,18 @@
                     var key = el.getAttribute('data-key');
                     if (data[key] !== undefined) el.value = data[key];
                 });
-                var file = res.file || '';
-                document.getElementById('configFile').textContent = '配置文件: ' + file;
-                document.getElementById('configFileMeta').textContent = '配置文件: ' + file;
+                document.getElementById('configFile').textContent = '配置文件: ' + res.file;
+                document.getElementById('configFileMeta').textContent = '配置文件: ' + res.file;
                 toast('配置已加载', true);
             })
             .catch(function (e) { toast('加载失败: ' + e.message, false); });
     }
 
     function saveConfig() {
-        var data = {};
-        document.querySelectorAll('[data-key]').forEach(function (el) {
-            data[el.getAttribute('data-key')] = el.value.trim();
-        });
         fetch('/api/config', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
+            body: JSON.stringify(collectConfig())
         })
             .then(function (r) { return r.json(); })
             .then(function (res) {
@@ -200,6 +284,129 @@
                 else { toast(res.message || '保存失败', false); }
             })
             .catch(function (e) { toast('保存失败: ' + e.message, false); });
+    }
+
+    function testConnection() {
+        saveConfig(); // 先保存生效，再测试
+        var el = document.getElementById('connResult');
+        el.className = 'conn-result';
+        el.textContent = '正在测试连接...';
+        fetch('/api/connection/test', { method: 'POST' })
+            .then(function (r) { return r.json(); })
+            .then(function (res) {
+                el.className = 'conn-result ' + (res.success ? 'ok' : 'err');
+                el.textContent = res.message;
+                toast(res.message, res.success);
+            })
+            .catch(function (e) {
+                el.className = 'conn-result err';
+                el.textContent = '测试失败: ' + e.message;
+            });
+    }
+
+    function loadTables() {
+        saveConfig();
+        toast('正在加载表列表...', true);
+        fetch('/api/tables', { method: 'POST' })
+            .then(function (r) { return r.json(); })
+            .then(function (res) {
+                if (!res.success) { toast(res.message || '加载表失败', false); return; }
+                tableData = res.tables || [];
+                renderTables();
+                toast('已加载 ' + tableData.length + ' 张表', true);
+            })
+            .catch(function (e) { toast('加载失败: ' + e.message, false); });
+    }
+
+    function renderTables() {
+        var list = document.getElementById('tableList');
+        var count = document.getElementById('tableCount');
+        if (!tableData.length) {
+            list.innerHTML = '<div class="empty-tip">未获取到表，请检查数据库连接</div>';
+            count.textContent = '共 0 张表';
+            return;
+        }
+        var html = '';
+        tableData.forEach(function (t, i) {
+            html += '<div class="table-item" onclick="toggleRow(' + i + ')">' +
+                '<input type="checkbox" id="tcb' + i + '" onclick="event.stopPropagation();toggleRow(' + i + ')">' +
+                '<span class="tname">' + t.tableName + '</span>' +
+                '<span class="tbean">' + t.beanName + '</span>' +
+                '<span class="tcomment">' + (t.comment || '') + '</span>' +
+                '</div>';
+        });
+        list.innerHTML = html;
+        count.textContent = '共 ' + tableData.length + ' 张表（已选 0）';
+        updateCount();
+    }
+
+    function toggleRow(i) {
+        var cb = document.getElementById('tcb' + i);
+        cb.checked = !cb.checked;
+        updateCount();
+    }
+
+    function selectAll(checked) {
+        tableData.forEach(function (t, i) {
+            var cb = document.getElementById('tcb' + i);
+            if (cb) cb.checked = checked;
+        });
+        updateCount();
+    }
+
+    function updateCount() {
+        var n = 0;
+        tableData.forEach(function (t, i) {
+            var cb = document.getElementById('tcb' + i);
+            if (cb && cb.checked) n++;
+        });
+        document.getElementById('tableCount').textContent = '共 ' + tableData.length + ' 张表（已选 ' + n + '）';
+    }
+
+    function getSelectedTables() {
+        var selected = [];
+        tableData.forEach(function (t, i) {
+            var cb = document.getElementById('tcb' + i);
+            if (cb && cb.checked) selected.push(t.tableName);
+        });
+        return selected;
+    }
+
+    function generate() {
+        var selected = getSelectedTables();
+        var tip = selected.length ? ('将生成 ' + selected.length + ' 张表: ' + selected.join(', ')) : '未勾选表，将生成全部表';
+        if (!confirm('确认生成？\n' + tip)) return;
+
+        var btn = event.target;
+        btn.disabled = true;
+        var log = document.getElementById('logArea');
+        log.className = 'log-area show';
+        log.innerHTML = '<div>开始生成...</div>';
+
+        fetch('/api/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ config: collectConfig(), tables: selected })
+        })
+            .then(function (r) { return r.json(); })
+            .then(function (res) {
+                if (res.success) {
+                    var html = '<div class="ok">✔ ' + res.message + '</div>';
+                    (res.files || []).forEach(function (f) {
+                        html += '<div>  - ' + f + '</div>';
+                    });
+                    log.innerHTML = html;
+                    toast(res.message, true);
+                } else {
+                    log.innerHTML = '<div class="err">✘ ' + (res.message || '生成失败') + '</div>';
+                    toast(res.message || '生成失败', false);
+                }
+            })
+            .catch(function (e) {
+                log.innerHTML = '<div class="err">✘ ' + e.message + '</div>';
+                toast('生成失败: ' + e.message, false);
+            })
+            .finally(function () { btn.disabled = false; });
     }
 
     loadConfig();
