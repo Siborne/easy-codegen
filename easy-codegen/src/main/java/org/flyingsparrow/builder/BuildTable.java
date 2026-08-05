@@ -64,6 +64,10 @@ public class BuildTable {
             tableResult = ps.executeQuery();
             while (tableResult.next()) {
                 String tableName = tableResult.getString("Name");
+                // 表名合法性校验：仅允许常规标识符（表名来自数据库元数据，防御性校验）
+                if (tableName == null || !tableName.matches("[A-Za-z0-9_$]+")) {
+                    continue;
+                }
                 if (tableNames != null && !tableNames.isEmpty() && !tableNames.contains(tableName)) {
                     continue;
                 }

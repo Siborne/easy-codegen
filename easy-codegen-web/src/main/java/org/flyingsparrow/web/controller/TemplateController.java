@@ -42,6 +42,14 @@ public class TemplateController {
     }
 
     /**
+     * 模板名校验：拒绝空、路径分隔符与相对路径穿越
+     */
+    private static boolean isValidName(String name) {
+        return name != null && !name.trim().isEmpty()
+                && !name.contains("/") && !name.contains("\\") && !name.contains("..");
+    }
+
+    /**
      * 列出所有模板名
      */
     @GetMapping
@@ -67,7 +75,7 @@ public class TemplateController {
     @PostMapping("/{name}")
     public Map<String, Object> save(@PathVariable String name, @RequestBody Map<String, String> config) {
         Map<String, Object> result = new LinkedHashMap<>();
-        if (name == null || name.trim().isEmpty() || name.contains("/") || name.contains("\\") || name.contains("..")) {
+        if (!isValidName(name)) {
             result.put("success", false);
             result.put("message", "模板名不合法");
             return result;
@@ -89,6 +97,11 @@ public class TemplateController {
     @GetMapping("/{name}")
     public Map<String, Object> load(@PathVariable String name) {
         Map<String, Object> result = new LinkedHashMap<>();
+        if (!isValidName(name)) {
+            result.put("success", false);
+            result.put("message", "模板名不合法");
+            return result;
+        }
         File file = templateFile(name);
         if (!file.exists()) {
             result.put("success", false);
@@ -111,6 +124,11 @@ public class TemplateController {
     @DeleteMapping("/{name}")
     public Map<String, Object> delete(@PathVariable String name) {
         Map<String, Object> result = new LinkedHashMap<>();
+        if (!isValidName(name)) {
+            result.put("success", false);
+            result.put("message", "模板名不合法");
+            return result;
+        }
         File file = templateFile(name);
         if (!file.exists()) {
             result.put("success", false);
