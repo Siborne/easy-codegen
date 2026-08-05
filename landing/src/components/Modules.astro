@@ -1,0 +1,39 @@
+---
+import { Icon } from 'astro-icon/components';
+import type { UIKey } from '../i18n/ui';
+
+interface Props {
+  t: (key: UIKey) => string;
+}
+
+const { t } = Astro.props;
+
+const modules = [
+  { icon: 'lucide:zap', title: 'module.core.title', desc: 'module.core.desc' },
+  { icon: 'lucide:globe', title: 'module.web.title', desc: 'module.web.desc' },
+  { icon: 'lucide:monitor', title: 'module.desktop.title', desc: 'module.desktop.desc' },
+  { icon: 'lucide:flask-conical', title: 'module.demo.title', desc: 'module.demo.desc' },
+] as const;
+---
+
+<section class="section" id="modules">
+  <div class="container">
+    <div class="section-head">
+      <h2>{t('module.title')}</h2>
+      <p>{t('module.subtitle')}</p>
+    </div>
+    <div class="module-grid">
+      {modules.map((m) => (
+        <article class="module-card">
+          <div class="module-icon" aria-hidden="true">
+            <Icon name={m.icon} />
+          </div>
+          <div>
+            <h3>{t(m.title)}</h3>
+            <p>{t(m.desc)}</p>
+          </div>
+        </article>
+      ))}
+    </div>
+  </div>
+</section>

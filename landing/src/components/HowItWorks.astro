@@ -1,0 +1,38 @@
+---
+import { Icon } from 'astro-icon/components';
+import type { UIKey } from '../i18n/ui';
+
+interface Props {
+  t: (key: UIKey) => string;
+}
+
+const { t } = Astro.props;
+
+const steps = [
+  { icon: 'lucide:plug', title: 'how.step1.title', desc: 'how.step1.desc' },
+  { icon: 'lucide:table', title: 'how.step2.title', desc: 'how.step2.desc' },
+  { icon: 'lucide:settings', title: 'how.step3.title', desc: 'how.step3.desc' },
+  { icon: 'lucide:wand', title: 'how.step4.title', desc: 'how.step4.desc' },
+] as const;
+---
+
+<section class="section" id="how">
+  <div class="container">
+    <div class="section-head">
+      <h2>{t('how.title')}</h2>
+      <p>{t('how.subtitle')}</p>
+    </div>
+    <div class="steps">
+      {steps.map((s, i) => (
+        <article class="step">
+          <div class="step-num">0{i + 1}</div>
+          <div class="step-icon" aria-hidden="true">
+            <Icon name={s.icon} />
+          </div>
+          <h3>{t(s.title)}</h3>
+          <p>{t(s.desc)}</p>
+        </article>
+      ))}
+    </div>
+  </div>
+</section>

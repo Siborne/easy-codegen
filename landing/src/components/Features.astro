@@ -1,0 +1,39 @@
+---
+import { Icon } from 'astro-icon/components';
+import type { UIKey } from '../i18n/ui';
+
+interface Props {
+  t: (key: UIKey) => string;
+}
+
+const { t } = Astro.props;
+
+const features = [
+  { icon: 'lucide:database', title: 'feature.autoRead.title', desc: 'feature.autoRead.desc' },
+  { icon: 'lucide:file-code', title: 'feature.fullStack.title', desc: 'feature.fullStack.desc' },
+  { icon: 'lucide:eye', title: 'feature.preview.title', desc: 'feature.preview.desc' },
+  { icon: 'lucide:package', title: 'feature.zip.title', desc: 'feature.zip.desc' },
+  { icon: 'lucide:save', title: 'feature.template.title', desc: 'feature.template.desc' },
+  { icon: 'lucide:palette', title: 'feature.theme.title', desc: 'feature.theme.desc' },
+] as const;
+---
+
+<section class="section" id="features">
+  <div class="container">
+    <div class="section-head">
+      <h2>{t('feature.title')}</h2>
+      <p>{t('feature.subtitle')}</p>
+    </div>
+    <div class="feature-grid">
+      {features.map((f) => (
+        <article class="feature-card">
+          <div class="feature-icon" aria-hidden="true">
+            <Icon name={f.icon} />
+          </div>
+          <h3>{t(f.title)}</h3>
+          <p>{t(f.desc)}</p>
+        </article>
+      ))}
+    </div>
+  </div>
+</section>

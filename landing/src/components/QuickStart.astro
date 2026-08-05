@@ -1,0 +1,70 @@
+---
+import { Icon } from 'astro-icon/components';
+import type { UIKey } from '../i18n/ui';
+import { ui } from '../i18n/ui';
+
+interface Props {
+  lang: keyof typeof ui;
+  t: (key: UIKey) => string;
+}
+
+const { lang, t } = Astro.props;
+const items = ui[lang]['quick.prereq.items'];
+---
+
+<section class="section" id="quickstart">
+  <div class="container">
+    <div class="section-head">
+      <h2>{t('quick.title')}</h2>
+      <p>{t('quick.subtitle')}</p>
+    </div>
+    <div class="quick-grid">
+      <div class="quick-card">
+        <h3>
+          <Icon name="lucide:check" />
+          {t('quick.prereq')}
+        </h3>
+        <ul class="quick-list">
+          {items.map((item) => (
+            <li>
+              <Icon name="lucide:check" />
+              {item}
+            </li>
+          ))}
+        </ul>
+
+        <h3 style="margin-top: 26px">
+          <Icon name="lucide:terminal" />
+          {t('quick.build')}
+        </h3>
+        <pre class="code-block"><code>cd easy-codegen <span class="cm">&amp;&amp;</span> mvn install -DskipTests
+cd ../easy-codegen-web <span class="cm">&amp;&amp;</span> mvn install -DskipTests
+cd ../easy-codegen-desktop <span class="cm">&amp;&amp;</span> mvn package -DskipTests</code></pre>
+
+        <h3>
+          <Icon name="lucide:terminal" />
+          {t('quick.dev')}
+        </h3>
+        <pre class="code-block"><code>cd easy-codegen-web/frontend
+npm install
+npm run dev <span class="cm"># http://localhost:6000</span></code></pre>
+      </div>
+
+      <div class="quick-card">
+        <h3>
+          <Icon name="lucide:monitor" />
+          {t('quick.run.desktop')}
+        </h3>
+        <p style="font-size: 0.92rem; color: var(--text-dim); margin-bottom: 16px">{t('quick.run.desktop.desc')}</p>
+        <pre class="code-block"><code>start-desktop.bat</code></pre>
+
+        <h3 style="margin-top: 26px">
+          <Icon name="lucide:globe" />
+          {t('quick.run.web')}
+        </h3>
+        <p style="font-size: 0.92rem; color: var(--text-dim); margin-bottom: 16px">{t('quick.run.web.desc')}</p>
+        <pre class="code-block"><code>start-web.bat <span class="cm"># http://localhost:9000</span></code></pre>
+      </div>
+    </div>
+  </div>
+</section>

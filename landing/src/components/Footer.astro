@@ -1,0 +1,28 @@
+---
+import { Icon } from 'astro-icon/components';
+import type { UIKey } from '../i18n/ui';
+
+interface Props {
+  t: (key: UIKey) => string;
+}
+
+const { t } = Astro.props;
+---
+
+<footer class="site-footer">
+  <div class="container">
+    <div>
+      <strong>easy-codegen</strong> · {t('footer.license')} © {new Date().getFullYear()} <span>{t('footer.rights')}</span>
+    </div>
+    <div class="footer-links">
+      <a href="https://github.com/Siborne/easy-codegen" target="_blank" rel="noopener">
+        <Icon name="lucide:github" />
+        GitHub
+      </a>
+      <a href="mailto:bo7785888@gmail.com">
+        <Icon name="lucide:mail" />
+        {t('footer.contact')}
+      </a>
+    </div>
+  </div>
+</footer>

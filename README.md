@@ -20,6 +20,7 @@ easy-codegen 是一个带可视化面板的 Java 代码生成器，用于根据�
     - `/frontend` - React 前端源码（Vite + Ant Design）
 - [easy-codegen-desktop] - 桌面版（JavaFX 窗口内嵌 Web 面板，自动拉起后端服务）
 - [easy-codegen-demo] - 示例模块（演示生成代码的用法）
+- [landing] - 项目主页（Astro 静态站，中英双语，GitHub Actions 自动部署到 GitHub Pages，见 [landing/README.md](landing/README.md)）
 
 ## 安装与配置
 

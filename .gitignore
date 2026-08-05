@@ -5,6 +5,10 @@ target/
 node_modules/
 .vite/
 
+# Astro (landing)
+landing/dist/
+landing/.astro/
+
 # IDE
 .idea/
 *.iml

@@ -1,0 +1,51 @@
+---
+import { Icon } from 'astro-icon/components';
+import type { UIKey } from '../i18n/ui';
+
+interface Props {
+  t: (key: UIKey) => string;
+}
+
+const { t } = Astro.props;
+const githubUrl = 'https://github.com/Siborne/easy-codegen';
+---
+
+<section class="hero">
+  <div class="container">
+    <span class="hero-badge">
+      <Icon name="lucide:sparkles" />
+      {t('hero.badge')}
+    </span>
+    <h1>
+      {t('hero.title1')}
+      <span class="grad">{t('hero.title2')}</span>
+    </h1>
+    <p class="hero-sub">{t('hero.subtitle')}</p>
+    <div class="hero-cta">
+      <a class="btn btn-primary btn-lg" href={githubUrl} target="_blank" rel="noopener">
+        <Icon name="lucide:rocket" />
+        {t('hero.cta.download')}
+      </a>
+      <a class="btn btn-ghost btn-lg" href={githubUrl} target="_blank" rel="noopener">
+        <Icon name="lucide:github" />
+        {t('hero.cta.github')}
+      </a>
+    </div>
+    <div class="hero-stats">
+      <div class="stat">
+        <div class="stat-value">{t('hero.stat.typesValue')}</div>
+        <div class="stat-label">{t('hero.stat.types')}</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value stat-icon">
+          <Icon name="lucide:database" />
+        </div>
+        <div class="stat-label">{t('hero.stat.tables')}</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">2</div>
+        <div class="stat-label">{t('hero.stat.mode')}</div>
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,19 @@
+{
+  "name": "easy-codegen-landing",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@iconify-json/lucide": "^1.2.121",
+    "@rolldown/binding-win32-x64-msvc": "^1.2.2",
+    "astro": "^7.1.6",
+    "astro-icon": "^1.1.5",
+    "lightningcss-win32-x64-msvc": "^1.33.0"
+  }
+}
