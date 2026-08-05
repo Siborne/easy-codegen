@@ -29,9 +29,21 @@ public class BuildTable {
 
     private static String SQL_SHOW_TABLE_STATUS = "show table status";
 
-    private static String SQL_SHOW_TABLE_FIELDS = "show full fields from %s";
+    private static String SQL_SHOW_TABLE_FIELDS = "show full fields from `%s`";
 
-    private static String SQL_SHOW_TABLE_INDEX = "show index from %s";
+    private static String SQL_SHOW_TABLE_INDEX = "show index from `%s`";
+
+    /**
+     * 表名合法性校验：拒绝反引号/路径分隔符/NUL 等危险字符（MySQL 表名中不允许出现），
+     * 其余字符（含中文、连字符等）均放行；配合 SQL 中的反引号包裹防止拼接注入
+     */
+    public static boolean isValidTableName(String tableName) {
+        if (tableName == null || tableName.isEmpty()) {
+            return false;
+        }
+        return !tableName.contains("`") && !tableName.contains("/")
+                && !tableName.contains("\\") && !tableName.contains("\0");
+    }
 
     /**
      * 使用当前生效配置获取全部表
@@ -64,8 +76,8 @@ public class BuildTable {
             tableResult = ps.executeQuery();
             while (tableResult.next()) {
                 String tableName = tableResult.getString("Name");
-                // 表名合法性校验：仅允许常规标识符（表名来自数据库元数据，防御性校验）
-                if (tableName == null || !tableName.matches("[A-Za-z0-9_$]+")) {
+                // 表名合法性校验：仅拒绝 MySQL 表名中不可能出现的危险字符（反引号/路径分隔/NUL）
+                if (!isValidTableName(tableName)) {
                     continue;
                 }
                 if (tableNames != null && !tableNames.isEmpty() && !tableNames.contains(tableName)) {

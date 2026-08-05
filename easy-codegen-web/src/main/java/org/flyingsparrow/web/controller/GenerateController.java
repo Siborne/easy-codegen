@@ -8,6 +8,7 @@ import org.flyingsparrow.builder.PreviewFile;
 import org.flyingsparrow.bean.TableInfo;
 import org.flyingsparrow.utils.PropertiesUtils;
 import org.flyingsparrow.web.config.CodegenConfigManager;
+import org.flyingsparrow.web.util.JsonUtil;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -161,44 +162,11 @@ public class GenerateController {
                     .body(zipBytes);
         } catch (Exception e) {
             // 失败时返回错误 JSON（约定前端以 blob 读取时判断 content-type）；消息转义防响应污染
-            String msg = "{\"success\":false,\"message\":\"打包下载失败: " + escapeJson(e.getMessage()) + "\"}";
+            String msg = "{\"success\":false,\"message\":\"打包下载失败: " + JsonUtil.escape(e.getMessage()) + "\"}";
             return ResponseEntity.ok()
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(msg.getBytes());
         }
-    }
-
-    /**
-     * JSON 字符串转义：防止异常消息中的引号/换行污染响应
-     */
-    private static String escapeJson(String s) {
-        if (s == null) {
-            return "";
-        }
-        StringBuilder sb = new StringBuilder(s.length() + 16);
-        for (int i = 0; i < s.length(); i++) {
-            char c = s.charAt(i);
-            switch (c) {
-                case '"':
-                    sb.append("\\\"");
-                    break;
-                case '\\':
-                    sb.append("\\\\");
-                    break;
-                case '\n':
-                    sb.append("\\n");
-                    break;
-                case '\r':
-                    sb.append("\\r");
-                    break;
-                case '\t':
-                    sb.append("\\t");
-                    break;
-                default:
-                    sb.append(c);
-            }
-        }
-        return sb.toString();
     }
 
     public static class GenerateRequest {
