@@ -1,6 +1,9 @@
 # Maven build output
 target/
 
+# Node
+node_modules/
+
 # IDE
 .idea/
 *.iml
