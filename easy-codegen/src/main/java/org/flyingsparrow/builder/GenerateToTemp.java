@@ -35,11 +35,24 @@ public class GenerateToTemp {
     }
 
     /**
-     * 在临时目录执行一次生成，返回生成文件列表（调用方负责 deleteRecursively 清理）
-     *
-     * @return 生成的文件；生成失败返回 null
+     * 生成结果（文件列表 + 临时根目录，调用方负责清理 tmpDir）
      */
-    public static List<TempFile> generateToTempDir(Properties props, Collection<String> tableNames, Collection<String> types) {
+    public static class TempResult {
+        public File tmpDir;
+        public List<TempFile> files;
+
+        public TempResult(File tmpDir, List<TempFile> files) {
+            this.tmpDir = tmpDir;
+            this.files = files;
+        }
+    }
+
+    /**
+     * 在临时目录执行一次生成
+     *
+     * @return 生成结果（含文件列表与临时根目录，调用方 finally 中 deleteRecursively(tmpDir)）
+     */
+    public static TempResult generateToTempDir(Properties props, Collection<String> tableNames, Collection<String> types) {
         Properties tempProps = new Properties();
         tempProps.putAll(props);
 
@@ -67,7 +80,7 @@ public class GenerateToTemp {
             String relative = absolute.substring(tmpPath.length()).replace('\\', '/');
             files.add(new TempFile(relative, file));
         }
-        return files;
+        return new TempResult(tmpDir.toFile(), files);
     }
 
     /**
