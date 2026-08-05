@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { App, Card, Button, Table, Space, Tag } from 'antd';
-import { TableOutlined } from '@ant-design/icons';
+import { SyncOutlined } from '@ant-design/icons';
 import { api } from '../api';
 
 export default function TablePanel({ tables, selectedTables, onTablesLoaded, onSelectedChange }) {
@@ -14,7 +14,7 @@ export default function TablePanel({ tables, selectedTables, onTablesLoaded, onS
       if (res.success) {
         onTablesLoaded?.(res.tables || []);
         onSelectedChange?.([]);
-        message.success('已加载 ' + (res.tables || []).length + ' 张表');
+        message.success('表结构已同步，共 ' + (res.tables || []).length + ' 张表');
       } else {
         message.error(res.message || '加载表失败');
       }
@@ -41,8 +41,8 @@ export default function TablePanel({ tables, selectedTables, onTablesLoaded, onS
       title="数据表"
       extra={
         <Space>
-          <Button icon={<TableOutlined />} loading={loading} onClick={handleLoad}>
-            加载表列表
+          <Button icon={<SyncOutlined />} loading={loading} onClick={handleLoad}>
+            同步表结构
           </Button>
         </Space>
       }
@@ -55,7 +55,7 @@ export default function TablePanel({ tables, selectedTables, onTablesLoaded, onS
         columns={columns}
         rowSelection={rowSelection}
         pagination={tables.length > 10 ? { pageSize: 10, showSizeChanger: false } : false}
-        locale={{ emptyText: '点击右上角"加载表列表"获取当前数据库的表' }}
+        locale={{ emptyText: '点击右上角"同步表结构"获取当前数据库的表' }}
       />
       <div style={{ marginTop: 8, color: '#888', fontSize: 13 }}>
         共 {tables.length} 张表，已选 {selectedTables.length} 张；未勾选任何表时生成全部表

@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Layout, Tabs, Typography, Tag, Space } from 'antd';
-import { CodeOutlined } from '@ant-design/icons';
+import { ConfigProvider, App as AntApp, Layout, Tabs, Typography, Tag, Space, Button, Tooltip } from 'antd';
+import { CodeOutlined, SunOutlined, MoonOutlined } from '@ant-design/icons';
+import zhCN from 'antd/locale/zh_CN';
+import { theme as antTheme } from 'antd';
 import { api } from './api';
 import ConnectionPanel from './components/ConnectionPanel';
 import GenConfigPanel from './components/GenConfigPanel';
@@ -10,8 +12,28 @@ import GeneratePanel from './components/GeneratePanel';
 import TemplatePanel from './components/TemplatePanel';
 
 const { Header, Content } = Layout;
+const THEME_KEY = 'easy-codegen-theme';
 
 export default function App() {
+  const [theme, setTheme] = useState(() => localStorage.getItem(THEME_KEY) || 'light');
+
+  useEffect(() => {
+    localStorage.setItem(THEME_KEY, theme);
+  }, [theme]);
+
+  return (
+    <ConfigProvider
+      locale={zhCN}
+      theme={{ algorithm: theme === 'dark' ? antTheme.darkAlgorithm : antTheme.defaultAlgorithm }}
+    >
+      <AntApp>
+        <Panel theme={theme} onToggleTheme={() => setTheme(theme === 'dark' ? 'light' : 'dark')} />
+      </AntApp>
+    </ConfigProvider>
+  );
+}
+
+function Panel({ theme, onToggleTheme }) {
   const [config, setConfig] = useState(null);
   const [configFile, setConfigFile] = useState('');
   const [tables, setTables] = useState([]);
@@ -42,11 +64,21 @@ export default function App() {
             Easy-Codegen 可视化面板
           </Typography.Title>
         </Space>
-        {configFile && (
-          <Tag color="blue" style={{ fontSize: 12 }}>
-            配置文件: {configFile}
-          </Tag>
-        )}
+        <Space>
+          {configFile && (
+            <Tag color="blue" style={{ fontSize: 12, maxWidth: 480, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              配置文件: {configFile}
+            </Tag>
+          )}
+          <Tooltip title={theme === 'dark' ? '切换到亮色' : '切换到暗色'}>
+            <Button
+              type="text"
+              icon={theme === 'dark' ? <SunOutlined /> : <MoonOutlined />}
+              onClick={onToggleTheme}
+              style={{ color: '#fff' }}
+            />
+          </Tooltip>
+        </Space>
       </Header>
       <Content style={{ padding: 24, maxWidth: 1280, width: '100%', margin: '0 auto' }}>
         <Tabs
@@ -86,7 +118,7 @@ export default function App() {
             {
               key: 'templates',
               label: '配置模板',
-              children: <TemplatePanel />
+              children: <TemplatePanel config={config} onSaved={refreshConfig} />
             }
           ]}
         />
