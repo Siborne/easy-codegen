@@ -26,6 +26,7 @@ public class BuildQuery {
         String className = tableInfo.getBeanName() + Constants.SUFFIX_BEAN_QUERY;
 
         File queryFile = new File(folder, className + ".java");
+        GenerateResultCollector.add(queryFile.getAbsolutePath());
 
         OutputStream out = null;
         OutputStreamWriter outw = null;

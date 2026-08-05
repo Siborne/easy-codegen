@@ -23,6 +23,7 @@ public class BuildPo {
         }
 
         File poFile = new File(folder, tableInfo.getBeanName() + ".java");
+        GenerateResultCollector.add(poFile.getAbsolutePath());
 
         OutputStream out = null;
         OutputStreamWriter outw = null;

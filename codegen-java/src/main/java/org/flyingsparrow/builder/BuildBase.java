@@ -1,6 +1,5 @@
 package org.flyingsparrow.builder;
 
-import com.sun.org.apache.bcel.internal.Const;
 import org.flyingsparrow.bean.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,6 +88,7 @@ public class BuildBase {
         }
 
         File file = new File(outPutPath, fileName + ".java");
+        GenerateResultCollector.add(file.getAbsolutePath());
 
         OutputStream out = null;
         OutputStreamWriter outw = null;

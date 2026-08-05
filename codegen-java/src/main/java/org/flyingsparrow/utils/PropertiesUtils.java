@@ -46,6 +46,27 @@ public class PropertiesUtils {
         return PROPER_MAP.get(key);
     }
 
+    /**
+     * 用外部配置覆盖/刷新运行时配置（供可视化面板在运行期修改配置）
+     */
+    public static synchronized void reload(Properties newProps) {
+        PROPER_MAP.clear();
+        if (newProps != null) {
+            for (String key : newProps.stringPropertyNames()) {
+                PROPER_MAP.put(key, newProps.getProperty(key));
+            }
+        }
+    }
+
+    /**
+     * 返回当前生效配置的副本
+     */
+    public static synchronized Properties getProperties() {
+        Properties copy = new Properties();
+        copy.putAll(PROPER_MAP);
+        return copy;
+    }
+
     public static void main(String[] args) {
         System.out.println(getString("db.driver.name"));
     }

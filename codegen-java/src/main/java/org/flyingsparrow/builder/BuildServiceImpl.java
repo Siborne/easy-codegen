@@ -24,6 +24,7 @@ public class BuildServiceImpl {
 
         String className = tableInfo.getBeanName() + "ServiceImpl";
         File serviceFile = new File(folder, className + ".java");
+        GenerateResultCollector.add(serviceFile.getAbsolutePath());
 
         OutputStream out = null;
         OutputStreamWriter outw = null;
