@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -79,6 +80,24 @@ public class GenerateController {
             if (request != null && request.getConfig() != null && !request.getConfig().isEmpty()) {
                 configManager.saveConfig(request.getConfig());
             }
+            String pathBase = PropertiesUtils.getString("path.base");
+            if (pathBase == null || pathBase.trim().isEmpty()) {
+                result.put("success", false);
+                result.put("message", "输出路径 path.base 未配置");
+                return result;
+            }
+            File outputDir = new File(pathBase.trim());
+            if (!outputDir.exists() && !outputDir.mkdirs()) {
+                result.put("success", false);
+                result.put("message", "输出目录无法创建: " + outputDir.getAbsolutePath());
+                return result;
+            }
+            if (!outputDir.isDirectory()) {
+                result.put("success", false);
+                result.put("message", "输出路径不是目录: " + outputDir.getAbsolutePath());
+                return result;
+            }
+
             List<String> tables = request == null ? null : request.getTables();
             GenerateResult generateResult = GenerateEngine.generate(PropertiesUtils.getProperties(), tables);
             result.put("success", generateResult.isSuccess());
