@@ -54,7 +54,7 @@ public class GenerateEngine {
      * @param types      要生成的类型集合（TYPE_* 常量），null/空 表示全部类型
      * @return 生成结果（文件清单 + 错误信息）
      */
-    public static GenerateResult generate(Properties props, Collection<String> tableNames, Collection<String> types) {
+    public static synchronized GenerateResult generate(Properties props, Collection<String> tableNames, Collection<String> types) {
         GenerateResultCollector.clear();
         try {
             Constants.reload(props);

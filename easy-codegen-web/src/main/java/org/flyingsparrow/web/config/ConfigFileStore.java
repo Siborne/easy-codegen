@@ -55,12 +55,14 @@ public class ConfigFileStore {
     }
 
     /**
-     * 将新配置合并写回文件：已有 key 原位更新值，新 key 追加到末尾，注释与顺序保留
+     * 将新配置合并写回文件：已有 key 原位更新值，新 key 追加到末尾，注释与顺序保留，行尾符与原文保持一致
      */
     public static void save(File file, Map<String, String> newValues) throws IOException {
         if (file.getParentFile() != null && !file.getParentFile().exists()) {
             file.getParentFile().mkdirs();
         }
+
+        String lineSeparator = detectLineSeparator(file);
 
         LinkedHashMap<String, String> current = load(file);
         StringBuilder sb = new StringBuilder();
@@ -89,7 +91,7 @@ public class ConfigFileStore {
                     if (!replaced) {
                         sb.append(line);
                     }
-                    sb.append(System.lineSeparator());
+                    sb.append(lineSeparator);
                 }
             } finally {
                 reader.close();
@@ -98,7 +100,7 @@ public class ConfigFileStore {
 
         for (Map.Entry<String, String> entry : newValues.entrySet()) {
             if (!current.containsKey(entry.getKey())) {
-                sb.append(entry.getKey()).append("=").append(entry.getValue()).append(System.lineSeparator());
+                sb.append(entry.getKey()).append("=").append(entry.getValue()).append(lineSeparator);
             }
         }
 
@@ -108,6 +110,32 @@ public class ConfigFileStore {
             writer.flush();
         } finally {
             writer.close();
+        }
+    }
+
+    /**
+     * 检测文件行尾符：多数出现的 \r\n 或 \n；文件不存在时用系统默认
+     */
+    private static String detectLineSeparator(File file) {
+        if (file == null || !file.exists()) {
+            return System.lineSeparator();
+        }
+        try {
+            byte[] bytes = java.nio.file.Files.readAllBytes(file.toPath());
+            int crlf = 0;
+            int lf = 0;
+            for (int i = 0; i < bytes.length; i++) {
+                if (bytes[i] == '\n') {
+                    if (i > 0 && bytes[i - 1] == '\r') {
+                        crlf++;
+                    } else {
+                        lf++;
+                    }
+                }
+            }
+            return crlf >= lf && crlf > 0 ? "\r\n" : "\n";
+        } catch (Exception e) {
+            return System.lineSeparator();
         }
     }
 }
