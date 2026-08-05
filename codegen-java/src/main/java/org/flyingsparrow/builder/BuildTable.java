@@ -12,9 +12,11 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 /**
  * 获取数据库表结构
@@ -24,7 +26,6 @@ import java.util.Map;
 public class BuildTable {
 
     private static final Logger logger = LoggerFactory.getLogger(BuildTable.class);
-    private static Connection conn = null;
 
     private static String SQL_SHOW_TABLE_STATUS = "show table status";
 
@@ -32,20 +33,28 @@ public class BuildTable {
 
     private static String SQL_SHOW_TABLE_INDEX = "show index from %s";
 
-    static {
-        String driverName = PropertiesUtils.getString("db.driver.name");
-        String url = PropertiesUtils.getString("db.url");
-        String username = PropertiesUtils.getString("db.username");
-        String password = PropertiesUtils.getString("db.password");
-        try {
-            Class.forName(driverName);
-            conn = DriverManager.getConnection(url, username, password);
-        } catch (Exception e) {
-            logger.error("数据库链接失败", e);
-        }
+    /**
+     * 使用当前生效配置获取全部表
+     */
+    public static List<TableInfo> getTables() {
+        return getTables(PropertiesUtils.getProperties(), null);
     }
 
-    public static List<TableInfo> getTables() {
+    /**
+     * 使用指定配置获取表结构；tableNames 为空时返回全部表
+     *
+     * @param props      数据库连接等配置
+     * @param tableNames 需要生成的表名集合，null/空 表示全部表
+     */
+    public static List<TableInfo> getTables(Properties props, Collection<String> tableNames) {
+        Connection conn = null;
+        try {
+            conn = openConnection(props);
+        } catch (Exception e) {
+            logger.error("数据库连接失败", e);
+            return new ArrayList<>();
+        }
+
         PreparedStatement ps = null;
         ResultSet tableResult = null;
 
@@ -55,8 +64,10 @@ public class BuildTable {
             tableResult = ps.executeQuery();
             while (tableResult.next()) {
                 String tableName = tableResult.getString("Name");
+                if (tableNames != null && !tableNames.isEmpty() && !tableNames.contains(tableName)) {
+                    continue;
+                }
                 String comment = tableResult.getString("Comment");
-//                logger.info("tableName:{},comment:{}", tableName, comment);
 
                 String beanName = tableName;
                 if (Constants.IGNORE_TABLE_PERFIX) {
@@ -70,11 +81,10 @@ public class BuildTable {
                 tableInfo.setComment(comment);
                 tableInfo.setBeanQueryName(beanName + Constants.SUFFIX_BEAN_QUERY);
 
-                readFiledInfo(tableInfo);
+                readFiledInfo(conn, tableInfo);
 
-                getKeyIndexInfo(tableInfo);
+                getKeyIndexInfo(conn, tableInfo);
 
-//                logger.info("tableInfo:{}", JsonUtils.convertObj2Json(tableInfo));
                 tableInfoList.add(tableInfo);
             }
         } catch (Exception e) {
@@ -105,7 +115,38 @@ public class BuildTable {
         return tableInfoList;
     }
 
-    private static void readFiledInfo(TableInfo tableInfo) {
+    /**
+     * 测试数据库连接，成功返回 null，失败返回错误信息
+     */
+    public static String testConnection(Properties props) {
+        Connection conn = null;
+        try {
+            conn = openConnection(props);
+            return null;
+        } catch (Exception e) {
+            logger.error("数据库连接失败", e);
+            return e.getMessage();
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    private static Connection openConnection(Properties props) throws Exception {
+        String driverName = props.getProperty("db.driver.name");
+        String url = props.getProperty("db.url");
+        String username = props.getProperty("db.username");
+        String password = props.getProperty("db.password");
+        Class.forName(driverName);
+        return DriverManager.getConnection(url, username, password);
+    }
+
+    private static void readFiledInfo(Connection conn, TableInfo tableInfo) {
         PreparedStatement ps = null;
         ResultSet fieldResult = null;
 
@@ -209,7 +250,7 @@ public class BuildTable {
         }
     }
 
-    private static void getKeyIndexInfo(TableInfo tableInfo) {
+    private static void getKeyIndexInfo(Connection conn, TableInfo tableInfo) {
         PreparedStatement ps = null;
         ResultSet fieldResult = null;
 
@@ -233,11 +274,6 @@ public class BuildTable {
                     keyFieldList = new ArrayList<>();
                     tableInfo.getKeyIndexMap().put(keyName, keyFieldList);
                 }
-                /*for (FieldInfo fieldInfo : tableInfo.getFieldList()) {
-                    if (fieldInfo.getFieldName().equals(columnName)) {
-                        keyFieldList.add(fieldInfo);
-                    }
-                }*/
                 keyFieldList.add(tempMap.get(columnName));
             }
         } catch (Exception e) {
