@@ -18,6 +18,7 @@ easy-codegen 是一个带可视化面板的 Java 代码生成器，用于根据�
     - `/src/main/java/org/flyingsparrow/web` - REST API（配置/表/生成/预览/模板）
     - `/src/main/resources/static` - 前端构建产物
     - `/frontend` - React 前端源码（Vite + Ant Design）
+- [easy-codegen-desktop] - 桌面版（JavaFX 窗口内嵌 Web 面板，自动拉起后端服务）
 - [easy-codegen-demo] - 示例模块（演示生成代码的用法）
 
 ## 安装与配置
@@ -33,11 +34,13 @@ easy-codegen 是一个带可视化面板的 Java 代码生成器，用于根据�
 1. 构建（首次或代码更新后）：
    ```
    cd easy-codegen && mvn install -DskipTests
-   cd ../easy-codegen-web && mvn package -DskipTests
+   cd ../easy-codegen-web && mvn install -DskipTests
+   cd ../easy-codegen-desktop && mvn package -DskipTests
    ```
 
-2. 双击项目根目录的 `start-web.bat`，自动启动后端并打开浏览器：
-   - 面板地址：http://localhost:9000
+2. 两种使用方式任选：
+   - **桌面版**：双击 `start-desktop.bat`（JavaFX 窗口，自动拉起后端服务，优先 9000 端口）
+   - **浏览器版**：双击 `start-web.bat`（后端 9000 端口 + 自动打开浏览器）
 
 ### 开发模式（前端热更新）
 
