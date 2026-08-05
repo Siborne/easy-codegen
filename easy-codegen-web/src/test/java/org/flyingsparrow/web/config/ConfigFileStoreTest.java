@@ -27,7 +27,7 @@ class ConfigFileStoreTest {
 
             byte[] bytes = Files.readAllBytes(f.toPath());
             String content = new String(bytes, StandardCharsets.UTF_8);
-            assertTrue(content.contains("b=22"), "值应被更新");
+            assertEquals("a=1\nb=22\n", content, "值应被更新且其余行原样保留");
             assertEquals(0, countCrlf(bytes), "LF 文件应保持 LF 行尾，不得被改为 CRLF");
         } finally {
             f.delete();

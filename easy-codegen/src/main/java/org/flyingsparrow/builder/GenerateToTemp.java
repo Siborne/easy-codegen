@@ -65,7 +65,14 @@ public class GenerateToTemp {
         String tmpPath = tmpDir.toFile().getAbsolutePath() + File.separator;
         tempProps.setProperty("path.base", tmpPath);
 
-        GenerateResult result = GenerateEngine.generate(tempProps, tableNames, types);
+        GenerateResult result;
+        try {
+            result = GenerateEngine.generate(tempProps, tableNames, types);
+        } catch (RuntimeException e) {
+            // 生成过程异常：清理临时目录后向上抛出
+            deleteRecursively(tmpDir.toFile());
+            throw e;
+        }
         if (result == null || !result.isSuccess()) {
             deleteRecursively(tmpDir.toFile());
             throw new RuntimeException(result == null ? "生成失败" : result.getError());
