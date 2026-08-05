@@ -86,8 +86,8 @@ public class CodegenConfigManager {
             throw new IOException("package.base 不允许包含 '..'");
         }
         String dbUrl = config.get("db.url");
-        if (dbUrl != null && !dbUrl.startsWith("jdbc:mysql://")) {
-            throw new IOException("db.url 必须以 jdbc:mysql:// 开头");
+        if (dbUrl != null && !dbUrl.startsWith("jdbc:mysql")) {
+            throw new IOException("db.url 必须以 jdbc:mysql 开头");
         }
         String driver = config.get("db.driver.name");
         if (driver != null && !driver.startsWith("com.mysql")) {
