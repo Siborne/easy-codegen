@@ -250,6 +250,8 @@
 <div class="meta" id="configFileMeta"></div>
 
 <script>
+    // 后端 API 地址：同源部署留空；前后端分离部署时通过 URL 参数指定，如 index.html?api=http://localhost:9000
+    var API_BASE = new URLSearchParams(location.search).get('api') || '';
     var toastTimer = null;
     var tableData = [];
 
@@ -270,7 +272,7 @@
     }
 
     function loadConfig() {
-        fetch('/api/config')
+        fetch(API_BASE + '/api/config')
             .then(function (r) { return r.json(); })
             .then(function (res) {
                 if (!res.success) { toast(res.message || '读取配置失败', false); return; }
@@ -287,7 +289,7 @@
     }
 
     function saveConfig() {
-        fetch('/api/config', {
+        fetch(API_BASE + '/api/config', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(collectConfig())
@@ -305,7 +307,7 @@
         var el = document.getElementById('connResult');
         el.className = 'conn-result';
         el.textContent = '正在测试连接...';
-        fetch('/api/connection/test', { method: 'POST' })
+        fetch(API_BASE + '/api/connection/test', { method: 'POST' })
             .then(function (r) { return r.json(); })
             .then(function (res) {
                 el.className = 'conn-result ' + (res.success ? 'ok' : 'err');
@@ -321,7 +323,7 @@
     function loadTables() {
         saveConfig();
         toast('正在加载表列表...', true);
-        fetch('/api/tables', { method: 'POST' })
+        fetch(API_BASE + '/api/tables', { method: 'POST' })
             .then(function (r) { return r.json(); })
             .then(function (res) {
                 if (!res.success) { toast(res.message || '加载表失败', false); return; }
@@ -397,7 +399,7 @@
         log.className = 'log-area show';
         log.innerHTML = '<div>开始生成...</div>';
 
-        fetch('/api/generate', {
+        fetch(API_BASE + '/api/generate', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ config: collectConfig(), tables: selected })
@@ -424,7 +426,7 @@
     }
 
     function loadTemplateList() {
-        fetch('/api/templates')
+        fetch(API_BASE + '/api/templates')
             .then(function (r) { return r.json(); })
             .then(function (res) {
                 if (!res.success) return;
@@ -443,7 +445,7 @@
     function saveTemplate() {
         var name = document.getElementById('templateName').value.trim();
         if (!name) { toast('请输入模板名称', false); return; }
-        fetch('/api/templates/' + encodeURIComponent(name), {
+        fetch(API_BASE + '/api/templates/' + encodeURIComponent(name), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(collectConfig())
@@ -459,7 +461,7 @@
     function loadTemplate() {
         var name = document.getElementById('templateSelect').value;
         if (!name) { toast('请先选择模板', false); return; }
-        fetch('/api/templates/' + encodeURIComponent(name))
+        fetch(API_BASE + '/api/templates/' + encodeURIComponent(name))
             .then(function (r) { return r.json(); })
             .then(function (res) {
                 if (!res.success) { toast(res.message, false); return; }
@@ -477,7 +479,7 @@
         var name = document.getElementById('templateSelect').value;
         if (!name) { toast('请先选择模板', false); return; }
         if (!confirm('确认删除模板: ' + name + ' ?')) return;
-        fetch('/api/templates/' + encodeURIComponent(name), { method: 'DELETE' })
+        fetch(API_BASE + '/api/templates/' + encodeURIComponent(name), { method: 'DELETE' })
             .then(function (r) { return r.json(); })
             .then(function (res) {
                 toast(res.message, res.success);
