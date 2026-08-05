@@ -207,6 +207,20 @@
     </div>
 </div>
 
+<!-- 配置模板 -->
+<div class="card">
+    <h2>配置模板</h2>
+    <div class="grid">
+        <div class="field"><label>模板名称</label><input id="templateName" placeholder="如: 测试环境"></div>
+    </div>
+    <div class="actions" style="margin-top: 12px;">
+        <button class="btn-plain" onclick="saveTemplate()">📌 保存当前配置为模板</button>
+        <select id="templateSelect" style="padding: 7px 10px; border: 1px solid #dcdfe6; border-radius: 4px; min-width: 160px;"></select>
+        <button class="btn-plain" onclick="loadTemplate()">📂 加载模板</button>
+        <button class="btn-danger" onclick="deleteTemplate()">🗑 删除模板</button>
+    </div>
+</div>
+
 <!-- 数据表 -->
 <div class="card">
     <h2>数据表</h2>
@@ -409,7 +423,71 @@
             .finally(function () { btn.disabled = false; });
     }
 
+    function loadTemplateList() {
+        fetch('/api/templates')
+            .then(function (r) { return r.json(); })
+            .then(function (res) {
+                if (!res.success) return;
+                var sel = document.getElementById('templateSelect');
+                sel.innerHTML = '';
+                (res.templates || []).forEach(function (n) {
+                    var opt = document.createElement('option');
+                    opt.value = n;
+                    opt.textContent = n;
+                    sel.appendChild(opt);
+                });
+            })
+            .catch(function () {});
+    }
+
+    function saveTemplate() {
+        var name = document.getElementById('templateName').value.trim();
+        if (!name) { toast('请输入模板名称', false); return; }
+        fetch('/api/templates/' + encodeURIComponent(name), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(collectConfig())
+        })
+            .then(function (r) { return r.json(); })
+            .then(function (res) {
+                toast(res.message, res.success);
+                if (res.success) { document.getElementById('templateName').value = ''; loadTemplateList(); }
+            })
+            .catch(function (e) { toast('保存模板失败: ' + e.message, false); });
+    }
+
+    function loadTemplate() {
+        var name = document.getElementById('templateSelect').value;
+        if (!name) { toast('请先选择模板', false); return; }
+        fetch('/api/templates/' + encodeURIComponent(name))
+            .then(function (r) { return r.json(); })
+            .then(function (res) {
+                if (!res.success) { toast(res.message, false); return; }
+                var data = res.data || {};
+                document.querySelectorAll('[data-key]').forEach(function (el) {
+                    var key = el.getAttribute('data-key');
+                    if (data[key] !== undefined) el.value = data[key];
+                });
+                toast('模板已加载: ' + name, true);
+            })
+            .catch(function (e) { toast('加载模板失败: ' + e.message, false); });
+    }
+
+    function deleteTemplate() {
+        var name = document.getElementById('templateSelect').value;
+        if (!name) { toast('请先选择模板', false); return; }
+        if (!confirm('确认删除模板: ' + name + ' ?')) return;
+        fetch('/api/templates/' + encodeURIComponent(name), { method: 'DELETE' })
+            .then(function (r) { return r.json(); })
+            .then(function (res) {
+                toast(res.message, res.success);
+                if (res.success) loadTemplateList();
+            })
+            .catch(function (e) { toast('删除模板失败: ' + e.message, false); });
+    }
+
     loadConfig();
+    loadTemplateList();
 </script>
 </body>
 </html>
