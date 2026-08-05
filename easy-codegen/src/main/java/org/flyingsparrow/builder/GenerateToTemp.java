@@ -78,6 +78,10 @@ public class GenerateToTemp {
                     continue;
                 }
                 String relative = absolute.substring(tmpPath.length()).replace('\\', '/');
+                // 防御 zip-slip：拒绝任何含 .. 的相对路径
+                if (relative.contains("..")) {
+                    continue;
+                }
                 files.add(new TempFile(relative, file));
             }
         } catch (Throwable t) {
