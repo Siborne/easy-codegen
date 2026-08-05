@@ -23,6 +23,7 @@ public class BuildMapper {
 
         String className = tableInfo.getBeanName() + Constants.SUFFIX_MAPPERS;
         File mapperFile = new File(folder, className + ".java");
+        GenerateResultCollector.add(mapperFile.getAbsolutePath());
 
         OutputStream out = null;
         OutputStreamWriter outw = null;

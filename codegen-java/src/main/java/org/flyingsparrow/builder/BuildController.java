@@ -22,6 +22,7 @@ public class BuildController {
 
         String className = tableInfo.getBeanName() + "Controller";
         File controllerFile = new File(folder, className + ".java");
+        GenerateResultCollector.add(controllerFile.getAbsolutePath());
 
         OutputStream out = null;
         OutputStreamWriter outw = null;

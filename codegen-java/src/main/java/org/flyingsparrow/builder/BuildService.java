@@ -23,6 +23,7 @@ public class BuildService {
 
         String className = tableInfo.getBeanName() + "Service";
         File serviceFile = new File(folder, className + ".java");
+        GenerateResultCollector.add(serviceFile.getAbsolutePath());
 
         OutputStream out = null;
         OutputStreamWriter outw = null;

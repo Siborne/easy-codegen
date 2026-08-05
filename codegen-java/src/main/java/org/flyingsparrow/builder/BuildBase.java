@@ -88,6 +88,7 @@ public class BuildBase {
         }
 
         File file = new File(outPutPath, fileName + ".java");
+        GenerateResultCollector.add(file.getAbsolutePath());
 
         OutputStream out = null;
         OutputStreamWriter outw = null;

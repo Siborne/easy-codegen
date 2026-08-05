@@ -34,6 +34,7 @@ public class BuildMapperXml {
 
         String className = tableInfo.getBeanName() + Constants.SUFFIX_MAPPERS;
         File mapperXmlFile = new File(folder, className + ".xml");
+        GenerateResultCollector.add(mapperXmlFile.getAbsolutePath());
 
         OutputStream out = null;
         OutputStreamWriter outw = null;
