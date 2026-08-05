@@ -4,9 +4,7 @@ title Codegen-Java Web Panel Launcher
 cd /d %~dp0
 
 set BACKEND_JAR=codegen-web\target\codegen-web-1.0-SNAPSHOT.jar
-set FRONTEND_DIR=codegen-web\src\main\resources\static
 set BACKEND_PORT=9000
-set FRONTEND_PORT=6000
 
 if not exist "%BACKEND_JAR%" (
     echo [ERROR] 后端 jar 不存在: %BACKEND_JAR%
@@ -15,16 +13,15 @@ if not exist "%BACKEND_JAR%" (
     exit /b 1
 )
 
-echo 启动后端 API 服务 (端口 %BACKEND_PORT%) ...
+echo 启动后端服务 (端口 %BACKEND_PORT%) ...
 start "codegen-backend" cmd /k "cd /d %~dp0codegen-web && java -jar target\codegen-web-1.0-SNAPSHOT.jar --server.port=%BACKEND_PORT%"
 
-echo 启动前端页面服务 (端口 %FRONTEND_PORT%) ...
-start "codegen-frontend" cmd /k "cd /d %~dp0%FRONTEND_DIR% && python -m http.server %FRONTEND_PORT% --bind 127.0.0.1"
-
 timeout /t 8 /nobreak >nul
-start "" "http://localhost:%FRONTEND_PORT%/?api=http://localhost:%BACKEND_PORT%"
+start "" "http://localhost:%BACKEND_PORT%/"
 echo.
-echo 面板地址: http://localhost:%FRONTEND_PORT%/?api=http://localhost:%BACKEND_PORT%
-echo 关闭后端/前端窗口即可停止服务。
+echo 面板地址: http://localhost:%BACKEND_PORT%/  (React 前端已打包进 jar，由后端同源托管)
+echo.
+echo 开发模式(热更新，可选): cd codegen-web\frontend ^&^& npm run dev  访问 http://localhost:6000
+echo 关闭后端窗口即可停止服务。
 echo.
 pause
