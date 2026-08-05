@@ -66,26 +66,24 @@ public class GenerateToTemp {
         tempProps.setProperty("path.base", tmpPath);
 
         GenerateResult result;
+        List<TempFile> files = new ArrayList<>();
         try {
             result = GenerateEngine.generate(tempProps, tableNames, types);
-        } catch (RuntimeException e) {
-            // 生成过程异常：清理临时目录后向上抛出
-            deleteRecursively(tmpDir.toFile());
-            throw e;
-        }
-        if (result == null || !result.isSuccess()) {
-            deleteRecursively(tmpDir.toFile());
-            throw new RuntimeException(result == null ? "生成失败" : result.getError());
-        }
-
-        List<TempFile> files = new ArrayList<>();
-        for (String absolute : result.getFiles()) {
-            File file = new File(absolute);
-            if (!file.exists()) {
-                continue;
+            if (result == null || !result.isSuccess()) {
+                throw new RuntimeException(result == null ? "生成失败" : result.getError());
             }
-            String relative = absolute.substring(tmpPath.length()).replace('\\', '/');
-            files.add(new TempFile(relative, file));
+            for (String absolute : result.getFiles()) {
+                File file = new File(absolute);
+                if (!file.exists()) {
+                    continue;
+                }
+                String relative = absolute.substring(tmpPath.length()).replace('\\', '/');
+                files.add(new TempFile(relative, file));
+            }
+        } catch (Throwable t) {
+            // 生成/收集过程任何异常（含 Error）：清理临时目录后向上抛出，杜绝泄漏
+            deleteRecursively(tmpDir.toFile());
+            throw t;
         }
         return new TempResult(tmpDir.toFile(), files);
     }
