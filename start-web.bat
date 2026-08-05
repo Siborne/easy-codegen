@@ -14,7 +14,7 @@ if not exist "%BACKEND_JAR%" (
 )
 
 echo 启动后端服务 (端口 %BACKEND_PORT%) ...
-start "easy-codegen-backend" cmd /k "cd /d %~dp0easy-codegen-web && java -jar target\easy-codegen-web-1.0-SNAPSHOT.jar --server.port=%BACKEND_PORT%"
+start "easy-codegen-backend" cmd /k "cd /d %~dp0easy-codegen-web && java -jar %BACKEND_JAR% --server.port=%BACKEND_PORT%"
 
 timeout /t 8 /nobreak >nul
 start "" "http://localhost:%BACKEND_PORT%/"

@@ -1,7 +1,6 @@
 package org.flyingsparrow.desktop;
 
 import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
@@ -12,6 +11,7 @@ import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
 
+import javax.swing.JOptionPane;
 import java.io.IOException;
 import java.net.ServerSocket;
 
@@ -24,44 +24,59 @@ public class DesktopApplication extends Application {
 
     private static final Logger logger = LoggerFactory.getLogger(DesktopApplication.class);
 
+    /** 面板实际端口（固定 9000 或自动分配） */
+    private static int port;
+
     private static ConfigurableApplicationContext webContext;
 
     public static void main(String[] args) {
-        int port = startEmbeddedWeb();
-        System.setProperty("easy-codegen.port", String.valueOf(port));
-        launch(args);
+        try {
+            port = startEmbeddedWeb();
+            launch(args);
+        } catch (Exception e) {
+            logger.error("Easy-Codegen 启动失败", e);
+            try {
+                JOptionPane.showMessageDialog(null,
+                        "Easy-Codegen 启动失败:\n" + e.getMessage(),
+                        "Easy-Codegen", JOptionPane.ERROR_MESSAGE);
+            } catch (Exception ignore) {
+                // 无图形环境时仅打印日志
+            }
+            System.exit(1);
+        }
     }
 
     /**
-     * 内嵌启动 Web 服务：优先 9000 端口，被占用则自动选择空闲端口
+     * 内嵌启动 Web 服务：优先固定 9000 端口；被占用时交由 Spring 自动分配端口
      */
     private static int startEmbeddedWeb() {
-        int port = findPort();
+        boolean fixedPort = isPortAvailable(9000);
+        String[] args = {
+                "--server.port=" + (fixedPort ? 9000 : 0),
+                "--spring.main.banner-mode=off"
+        };
         webContext = new SpringApplicationBuilder(CodegenWebApplication.class)
                 .web(WebApplicationType.SERVLET)
                 .headless(false)
-                .run("--server.port=" + port, "--spring.main.banner-mode=off");
-        logger.info("Easy-Codegen Web 服务已启动: http://localhost:{}", port);
-        return port;
+                .run(args);
+        int actualPort = fixedPort ? 9000 : Integer.parseInt(webContext.getEnvironment().getProperty("local.server.port"));
+        logger.info("Easy-Codegen Web 服务已启动: http://localhost:{}", actualPort);
+        return actualPort;
     }
 
-    private static int findPort() {
-        // 优先使用 9000（与浏览器版一致），被占用则自动选空闲端口
-        try (ServerSocket ignored = new ServerSocket(9000)) {
-            return 9000;
+    /**
+     * 探测端口是否可用（仅探测，不持有）
+     */
+    private static boolean isPortAvailable(int port) {
+        try (ServerSocket socket = new ServerSocket(port)) {
+            return true;
         } catch (IOException e) {
-            // 9000 被占用，找空闲端口
-        }
-        try (ServerSocket socket = new ServerSocket(0)) {
-            return socket.getLocalPort();
-        } catch (IOException e) {
-            return 9000;
+            return false;
         }
     }
 
     @Override
     public void start(Stage stage) {
-        int port = Integer.parseInt(System.getProperty("easy-codegen.port"));
         String url = "http://localhost:" + port + "/";
 
         WebView webView = new WebView();
@@ -88,8 +103,14 @@ public class DesktopApplication extends Application {
     public void stop() {
         logger.info("关闭 Easy-Codegen 桌面版");
         if (webContext != null) {
-            webContext.close();
+            // 后台线程关闭，避免阻塞 JavaFX Application Thread（非 daemon，JVM 会等待其完成）
+            new Thread(() -> {
+                try {
+                    webContext.close();
+                } catch (Exception e) {
+                    logger.warn("关闭内嵌服务时发生异常", e);
+                }
+            }, "easy-codegen-web-shutdown").start();
         }
-        Platform.exit();
     }
 }
