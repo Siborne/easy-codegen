@@ -90,84 +90,33 @@ public class BuildBase {
         File file = new File(outPutPath, fileName + ".java");
         GenerateResultCollector.add(file.getAbsolutePath());
 
-        OutputStream out = null;
-        OutputStreamWriter outw = null;
-        BufferedWriter bw = null;
-
-        InputStream in = null;
-        InputStreamReader inr = null;
-        BufferedReader br = null;
-        try {
-            out = new FileOutputStream(file);
-            outw = new OutputStreamWriter(out, "utf-8");
-            bw = new BufferedWriter(outw);
+        try (OutputStream out = new FileOutputStream(file);
+             OutputStreamWriter outw = new OutputStreamWriter(out, "utf-8");
+             BufferedWriter bw = new BufferedWriter(outw)) {
 
             String templatePath = BuildBase.class.getClassLoader().getResource("template/" + fileName + ".txt").getPath();
-            in = new FileInputStream(templatePath);
-            inr = new InputStreamReader(in, "utf-8");
-            br = new BufferedReader(inr);
+            try (InputStream in = new FileInputStream(templatePath);
+                 InputStreamReader inr = new InputStreamReader(in, "utf-8");
+                 BufferedReader br = new BufferedReader(inr)) {
 
-            for (String head : headerInfoList) {
-                bw.write(head + ";");
-                bw.newLine();
-                bw.newLine();
+                for (String head : headerInfoList) {
+                    bw.write(head + ";");
+                    bw.newLine();
+                    bw.newLine();
+                }
+
+
+                String lineInfo = null;
+                while ((lineInfo = br.readLine()) != null) {
+                    bw.write(lineInfo);
+                    bw.newLine();
+                }
+
+                bw.flush();
             }
-
-
-            String lineInfo = null;
-            while ((lineInfo = br.readLine()) != null) {
-                bw.write(lineInfo);
-                bw.newLine();
-            }
-
-            bw.flush();
 
         } catch (Exception e) {
             logger.error("生成基础类:{},失败", fileName, e);
-        } finally {
-            if (br != null) {
-                try {
-                    br.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            if (inr != null) {
-                try {
-                    inr.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            if (in != null) {
-                try {
-                    in.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            if (bw != null) {
-                try {
-                    bw.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            if (outw != null) {
-                try {
-                    outw.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            if (out != null) {
-                try {
-                    out.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-
         }
 
     }

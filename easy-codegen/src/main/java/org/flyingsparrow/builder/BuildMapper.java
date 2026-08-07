@@ -25,14 +25,9 @@ public class BuildMapper {
         File mapperFile = new File(folder, className + ".java");
         GenerateResultCollector.add(mapperFile.getAbsolutePath());
 
-        OutputStream out = null;
-        OutputStreamWriter outw = null;
-        BufferedWriter bw = null;
-        try {
-            out = new FileOutputStream(mapperFile);
-            outw = new OutputStreamWriter(out, "utf-8");
-            bw = new BufferedWriter(outw);
-
+        try (OutputStream out = new FileOutputStream(mapperFile);
+             OutputStreamWriter outw = new OutputStreamWriter(out, "utf-8");
+             BufferedWriter bw = new BufferedWriter(outw)) {
             // 构建Mapper头部信息(package/import)
             buildMapperHeader(bw);
 
@@ -43,31 +38,6 @@ public class BuildMapper {
             bw.flush();
         } catch (Exception e) {
             logger.error("创建mappers失败", e);
-        } finally {
-            if (bw != null) {
-                try {
-                    bw.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            if (outw != null) {
-                try {
-                    outw.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            if (out != null) {
-                try {
-                    out.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-
         }
     }
 

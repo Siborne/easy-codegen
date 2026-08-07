@@ -24,13 +24,9 @@ public class BuildController {
         File controllerFile = new File(folder, className + ".java");
         GenerateResultCollector.add(controllerFile.getAbsolutePath());
 
-        OutputStream out = null;
-        OutputStreamWriter outw = null;
-        BufferedWriter bw = null;
-        try {
-            out = new FileOutputStream(controllerFile);
-            outw = new OutputStreamWriter(out, "utf-8");
-            bw = new BufferedWriter(outw);
+        try (OutputStream out = new FileOutputStream(controllerFile);
+             OutputStreamWriter outw = new OutputStreamWriter(out, "utf-8");
+             BufferedWriter bw = new BufferedWriter(outw)) {
 
             bw.write("package " + Constants.PACKAGE_CONTROLLER + ";");
             bw.newLine();
@@ -204,31 +200,6 @@ public class BuildController {
             bw.flush();
         } catch (Exception e) {
             logger.error("创建service失败", e);
-        } finally {
-            if (bw != null) {
-                try {
-                    bw.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            if (outw != null) {
-                try {
-                    outw.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            if (out != null) {
-                try {
-                    out.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-
         }
 
     }

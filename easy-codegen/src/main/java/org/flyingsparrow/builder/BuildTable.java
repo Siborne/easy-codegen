@@ -59,97 +59,59 @@ public class BuildTable {
      * @param tableNames 需要生成的表名集合，null/空 表示全部表
      */
     public static List<TableInfo> getTables(Properties props, Collection<String> tableNames) {
-        Connection conn = null;
-        try {
-            conn = openConnection(props);
+        List<TableInfo> tableInfoList = new ArrayList<>();
+        try (Connection conn = openConnection(props)) {
+            try (PreparedStatement ps = conn.prepareStatement(SQL_SHOW_TABLE_STATUS);
+                 ResultSet tableResult = ps.executeQuery()) {
+                while (tableResult.next()) {
+                    String tableName = tableResult.getString("Name");
+                    // 表名合法性校验：仅拒绝 MySQL 表名中不可能出现的危险字符（反引号/路径分隔/NUL）
+                    if (!isValidTableName(tableName)) {
+                        continue;
+                    }
+                    if (tableNames != null && !tableNames.isEmpty() && !tableNames.contains(tableName)) {
+                        continue;
+                    }
+                    String comment = tableResult.getString("Comment");
+
+                    String beanName = tableName;
+                    if (Constants.IGNORE_TABLE_PERFIX) {
+                        beanName = tableName.substring(beanName.indexOf("_") + 1);
+                    }
+                    beanName = processFiled(beanName, true);
+
+                    TableInfo tableInfo = new TableInfo();
+                    tableInfo.setTableName(tableName);
+                    tableInfo.setBeanName(beanName);
+                    tableInfo.setComment(comment);
+                    tableInfo.setBeanQueryName(beanName + Constants.SUFFIX_BEAN_QUERY);
+
+                    readFiledInfo(conn, tableInfo);
+
+                    getKeyIndexInfo(conn, tableInfo);
+
+                    tableInfoList.add(tableInfo);
+                }
+            } catch (Exception e) {
+                logger.error("读取表失败", e);
+            }
+            return tableInfoList;
         } catch (Exception e) {
             logger.error("数据库连接失败", e);
-            return new ArrayList<>();
+            // close 阶段异常也走到这里：保留已读取的表结构而非返回空列表
+            return tableInfoList;
         }
-
-        PreparedStatement ps = null;
-        ResultSet tableResult = null;
-
-        List<TableInfo> tableInfoList = new ArrayList<>();
-        try {
-            ps = conn.prepareStatement(SQL_SHOW_TABLE_STATUS);
-            tableResult = ps.executeQuery();
-            while (tableResult.next()) {
-                String tableName = tableResult.getString("Name");
-                // 表名合法性校验：仅拒绝 MySQL 表名中不可能出现的危险字符（反引号/路径分隔/NUL）
-                if (!isValidTableName(tableName)) {
-                    continue;
-                }
-                if (tableNames != null && !tableNames.isEmpty() && !tableNames.contains(tableName)) {
-                    continue;
-                }
-                String comment = tableResult.getString("Comment");
-
-                String beanName = tableName;
-                if (Constants.IGNORE_TABLE_PERFIX) {
-                    beanName = tableName.substring(beanName.indexOf("_") + 1);
-                }
-                beanName = processFiled(beanName, true);
-
-                TableInfo tableInfo = new TableInfo();
-                tableInfo.setTableName(tableName);
-                tableInfo.setBeanName(beanName);
-                tableInfo.setComment(comment);
-                tableInfo.setBeanQueryName(beanName + Constants.SUFFIX_BEAN_QUERY);
-
-                readFiledInfo(conn, tableInfo);
-
-                getKeyIndexInfo(conn, tableInfo);
-
-                tableInfoList.add(tableInfo);
-            }
-        } catch (Exception e) {
-            logger.error("读取表失败", e);
-        } finally {
-            if (tableResult != null) {
-                try {
-                    tableResult.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-            if (ps != null) {
-                try {
-                    ps.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-            if (conn != null) {
-                try {
-                    conn.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        return tableInfoList;
     }
 
     /**
      * 测试数据库连接，成功返回 null，失败返回错误信息
      */
     public static String testConnection(Properties props) {
-        Connection conn = null;
-        try {
-            conn = openConnection(props);
+        try (Connection conn = openConnection(props)) {
             return null;
         } catch (Exception e) {
             logger.error("数据库连接失败", e);
             return e.getMessage();
-        } finally {
-            if (conn != null) {
-                try {
-                    conn.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
         }
     }
 
@@ -163,16 +125,12 @@ public class BuildTable {
     }
 
     private static void readFiledInfo(Connection conn, TableInfo tableInfo) {
-        PreparedStatement ps = null;
-        ResultSet fieldResult = null;
-
         List<FieldInfo> fieldInfoList = new ArrayList<>();
 
         List<FieldInfo> extendFieldInfoList = new ArrayList<>();
 
-        try {
-            ps = conn.prepareStatement(String.format(SQL_SHOW_TABLE_FIELDS, tableInfo.getTableName()));
-            fieldResult = ps.executeQuery();
+        try (PreparedStatement ps = conn.prepareStatement(String.format(SQL_SHOW_TABLE_FIELDS, tableInfo.getTableName()));
+             ResultSet fieldResult = ps.executeQuery()) {
 
             Boolean haveDateTime = false;
             Boolean haveDate = false;
@@ -248,36 +206,17 @@ public class BuildTable {
             tableInfo.setExtendFieldList(extendFieldInfoList);
         } catch (Exception e) {
             logger.error("读取字段失败", e);
-        } finally {
-            if (fieldResult != null) {
-                try {
-                    fieldResult.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-            if (ps != null) {
-                try {
-                    ps.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
         }
     }
 
     private static void getKeyIndexInfo(Connection conn, TableInfo tableInfo) {
-        PreparedStatement ps = null;
-        ResultSet fieldResult = null;
-
-        try {
+        try (PreparedStatement ps = conn.prepareStatement(String.format(SQL_SHOW_TABLE_INDEX, tableInfo.getTableName()));
+             ResultSet fieldResult = ps.executeQuery()) {
 
             Map<String, FieldInfo> tempMap = new HashMap<>();
             for (FieldInfo fieldInfo : tableInfo.getFieldList()) {
                 tempMap.put(fieldInfo.getFieldName(), fieldInfo);
             }
-            ps = conn.prepareStatement(String.format(SQL_SHOW_TABLE_INDEX, tableInfo.getTableName()));
-            fieldResult = ps.executeQuery();
             while (fieldResult.next()) {
                 String keyName = fieldResult.getString("key_name");
                 Integer nonUnique = fieldResult.getInt("non_unique");
@@ -294,21 +233,6 @@ public class BuildTable {
             }
         } catch (Exception e) {
             logger.error("读取索引失败", e);
-        } finally {
-            if (fieldResult != null) {
-                try {
-                    fieldResult.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-            if (ps != null) {
-                try {
-                    ps.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
         }
     }
 

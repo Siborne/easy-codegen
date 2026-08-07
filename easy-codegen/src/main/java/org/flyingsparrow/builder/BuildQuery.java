@@ -28,13 +28,9 @@ public class BuildQuery {
         File queryFile = new File(folder, className + ".java");
         GenerateResultCollector.add(queryFile.getAbsolutePath());
 
-        OutputStream out = null;
-        OutputStreamWriter outw = null;
-        BufferedWriter bw = null;
-        try {
-            out = new FileOutputStream(queryFile);
-            outw = new OutputStreamWriter(out, "utf-8");
-            bw = new BufferedWriter(outw);
+        try (OutputStream out = new FileOutputStream(queryFile);
+             OutputStreamWriter outw = new OutputStreamWriter(out, "utf-8");
+             BufferedWriter bw = new BufferedWriter(outw)) {
 
             //构建query头部信息
             buildQueryHeader(tableInfo, bw);
@@ -45,31 +41,6 @@ public class BuildQuery {
             bw.flush();
         } catch (Exception e) {
             logger.error("创建query失败", e);
-        } finally {
-            if (bw != null) {
-                try {
-                    bw.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            if (outw != null) {
-                try {
-                    outw.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            if (out != null) {
-                try {
-                    out.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-
         }
 
     }

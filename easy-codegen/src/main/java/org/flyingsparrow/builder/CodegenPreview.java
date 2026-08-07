@@ -44,9 +44,8 @@ public class CodegenPreview {
      */
     public static byte[] buildZip(Properties props, Collection<String> tableNames, Collection<String> types) {
         GenerateToTemp.TempResult tempResult = GenerateToTemp.generateToTempDir(props, tableNames, types);
-        try {
-            ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            ZipOutputStream zos = new ZipOutputStream(bos);
+        try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
+             ZipOutputStream zos = new ZipOutputStream(bos)) {
             for (GenerateToTemp.TempFile tf : tempResult.files) {
                 ZipEntry entry = new ZipEntry(tf.relativePath);
                 zos.putNextEntry(entry);

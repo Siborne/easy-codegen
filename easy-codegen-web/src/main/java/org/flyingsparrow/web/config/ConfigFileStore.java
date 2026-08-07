@@ -29,8 +29,7 @@ public class ConfigFileStore {
         if (file == null || !file.exists()) {
             return map;
         }
-        BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), "utf-8"));
-        try {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), "utf-8"))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 line = line.trim();
@@ -48,8 +47,6 @@ public class ConfigFileStore {
                 String value = line.substring(idx + 1).trim();
                 map.put(key, value);
             }
-        } finally {
-            reader.close();
         }
         return map;
     }
@@ -68,8 +65,7 @@ public class ConfigFileStore {
         StringBuilder sb = new StringBuilder();
 
         if (file.exists()) {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), "utf-8"));
-            try {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), "utf-8"))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
                     String trimmed = line.trim();
@@ -93,8 +89,6 @@ public class ConfigFileStore {
                     }
                     sb.append(lineSeparator);
                 }
-            } finally {
-                reader.close();
             }
         }
 
@@ -104,12 +98,9 @@ public class ConfigFileStore {
             }
         }
 
-        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "utf-8"));
-        try {
+        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "utf-8"))) {
             writer.write(sb.toString());
             writer.flush();
-        } finally {
-            writer.close();
         }
     }
 

@@ -25,13 +25,9 @@ public class BuildPo {
         File poFile = new File(folder, tableInfo.getBeanName() + ".java");
         GenerateResultCollector.add(poFile.getAbsolutePath());
 
-        OutputStream out = null;
-        OutputStreamWriter outw = null;
-        BufferedWriter bw = null;
-        try {
-            out = new FileOutputStream(poFile);
-            outw = new OutputStreamWriter(out, "utf-8");
-            bw = new BufferedWriter(outw);
+        try (OutputStream out = new FileOutputStream(poFile);
+             OutputStreamWriter outw = new OutputStreamWriter(out, "utf-8");
+             BufferedWriter bw = new BufferedWriter(outw)) {
 
             //构建PO类头部信息（Package/import)
             buildPoheader(tableInfo, bw);
@@ -43,31 +39,6 @@ public class BuildPo {
             bw.flush();
         } catch (Exception e) {
             logger.error("创建po失败", e);
-        } finally {
-            if (bw != null) {
-                try {
-                    bw.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            if (outw != null) {
-                try {
-                    outw.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            if (out != null) {
-                try {
-                    out.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-
         }
 
     }
