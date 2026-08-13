@@ -1,0 +1,25 @@
+# VCS
+.git
+.gitignore
+
+# Maven 构建产物
+**/target
+
+# Node 构建产物与依赖
+**/node_modules
+**/dist
+**/.astro
+**/.vite
+
+# IDE / OS
+.idea
+*.iml
+.vscode
+.DS_Store
+Thumbs.db
+
+# Reasonix
+.reasonix
+
+# 独立 npm 项目（landing 主页走 GitHub Actions 部署，不需要进入镜像）
+landing

@@ -30,6 +30,27 @@ easy-codegen 是一个带可视化面板的 Java 代码生成器，用于根据�
 - Node.js 16+（仅前端开发模式需要）
 - MySQL 数据库
 
+### Docker 快速体验（推荐）
+
+无需本地安装 JDK / Maven / Node / MySQL，一条命令即可启动 **Web 面板 + MySQL 演示库**：
+
+```
+docker compose up -d --build
+```
+
+1. 构建并启动后，浏览器打开 <http://localhost:9000>
+2. 在面板「数据库连接」页签填入：主机 `mysql`、端口 `3306`、用户名 `root`、密码 `123456`、库名 `linklite`（容器首次启动已自动建好 `user_info` 演示表；JDBC 在 app 容器内执行，主机填 compose 服务名 `mysql` 而非 localhost）
+3. 「测试连接」通过后，加载数据表 → 一键生成代码
+
+其他说明：
+
+- 镜像为多阶段构建（node 构建 React 前端 → maven 打包后端 → JRE 运行），产物为 `easy-codegen-web/target/*-exec.jar`；完整流程见 `Dockerfile`
+- 只跑面板、连接你自己的 MySQL：`docker build -t easy-codegen:latest . && docker run -p 9000:9000 easy-codegen:latest`
+- 运行时配置：容器内 `/app/config/application.properties`（即仓库 `easy-codegen/src/main/resources/application.properties`），可用 `CODEGEN_CONFIG_FILE` 环境变量覆盖；模板目录 `/app/config-templates`
+- 生成输出路径：默认配置 `path.base` 指向开发机 Windows 路径，容器内生成前请在面板「输出与包名」页签改为容器内可写目录（如 `/app/generated`），或将宿主目录挂载进容器后指定
+- 停止：`docker compose down`（保留 MySQL 数据）；连数据卷一起清理：`docker compose down -v`
+- 容器内 Web 面板绑定 `0.0.0.0:9000`（覆盖 application.yml 默认的仅本机 127.0.0.1:8090）
+
 ### 一键启动
 
 1. 构建（首次或代码更新后）：

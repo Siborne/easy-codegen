@@ -68,7 +68,10 @@ public class CodegenConfigManager {
     public synchronized void saveConfig(Map<String, String> config) throws IOException {
         validateConfig(config);
         ConfigFileStore.save(configFile, config);
-        PropertiesUtils.reload(toProperties(config));
+        // 前端只提交部分键（如 db.*），reload 必须基于合并写回后的完整配置，
+        // 否则未提交的键（suffix.*/package.* 等）会被覆盖为 null，导致生成代码损坏
+        LinkedHashMap<String, String> merged = ConfigFileStore.load(configFile);
+        PropertiesUtils.reload(toProperties(merged));
         Constants.reload(PropertiesUtils.getProperties());
         logger.info("配置已保存并生效: {}", configFile.getAbsolutePath());
     }

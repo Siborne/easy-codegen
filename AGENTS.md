@@ -31,6 +31,10 @@ start-desktop.bat                                   # JavaFX 桌面版
 # Landing 页（独立 npm 项目，部署见 .github/workflows/deploy-landing.yml）
 cd landing && npm install && npm run build
 cd landing && npm run dev                           # http://localhost:4321
+
+# Docker 一键体验（Web 面板 + MySQL 演示库，无需本地 JDK/Maven/Node/MySQL）
+docker compose up -d --build                        # http://localhost:9000；MySQL 映射宿主 3307
+docker compose down                                 # 停止（-v 连数据卷一起删除）
 ```
 
 ## Architecture
