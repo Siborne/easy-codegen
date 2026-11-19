@@ -16,8 +16,8 @@ const lang = (Astro.params.lang as Lang) ?? 'zh';
 const t = (key: keyof (typeof ui)['zh']) => ui[lang][key];
 
 const titles: Record<Lang, string> = {
-  zh: 'easy-codegen — Java 代码生成器（可视化面板）',
-  en: 'easy-codegen — Java Code Generator (Visual Panel)',
+  zh: 'easy-codegen — 可视化 Java 代码生成器',
+  en: 'easy-codegen — Visual Java Code Generator',
 };
 const descriptions: Record<Lang, string> = {
   zh: '带可视化面板的 Java 代码生成器：读取数据库表结构，一键生成 PO、Query、Mapper、Service、Controller 全套代码。',

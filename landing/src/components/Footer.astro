@@ -7,15 +7,16 @@ interface Props {
 }
 
 const { t } = Astro.props;
+const githubUrl = 'https://github.com/Siborne/easy-codegen';
 ---
 
 <footer class="site-footer">
   <div class="container">
     <div>
-      <strong>easy-codegen</strong> · {t('footer.license')} © {new Date().getFullYear()} <span>{t('footer.rights')}</span>
+      <strong>easy-codegen</strong> · {t('footer.license')} © {new Date().getFullYear()} {t('footer.rights')}
     </div>
     <div class="footer-links">
-      <a href="https://github.com/Siborne/easy-codegen" target="_blank" rel="noopener">
+      <a href={githubUrl} target="_blank" rel="noopener">
         <Icon name="lucide:github" />
         GitHub
       </a>

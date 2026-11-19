@@ -8,44 +8,142 @@ interface Props {
 
 const { t } = Astro.props;
 const githubUrl = 'https://github.com/Siborne/easy-codegen';
+
+const treeFiles = [
+  { name: 'UserInfoPO.java', active: false },
+  { name: 'UserInfoQuery.java', active: false },
+  { name: 'UserInfoMapper.java', active: false },
+  { name: 'UserInfoMapper.xml', active: false },
+  { name: 'UserInfoService.java', active: false },
+  { name: 'UserInfoServiceImpl.java', active: false },
+  { name: 'UserInfoController.java', active: true },
+];
 ---
 
 <section class="hero">
   <div class="container">
-    <span class="hero-badge">
-      <Icon name="lucide:sparkles" />
-      {t('hero.badge')}
-    </span>
-    <h1>
-      {t('hero.title1')}
-      <span class="grad">{t('hero.title2')}</span>
-    </h1>
-    <p class="hero-sub">{t('hero.subtitle')}</p>
-    <div class="hero-cta">
-      <a class="btn btn-primary btn-lg" href={githubUrl} target="_blank" rel="noopener">
-        <Icon name="lucide:rocket" />
-        {t('hero.cta.download')}
-      </a>
-      <a class="btn btn-ghost btn-lg" href={githubUrl} target="_blank" rel="noopener">
-        <Icon name="lucide:github" />
-        {t('hero.cta.github')}
-      </a>
-    </div>
-    <div class="hero-stats">
-      <div class="stat">
-        <div class="stat-value">{t('hero.stat.typesValue')}</div>
-        <div class="stat-label">{t('hero.stat.types')}</div>
-      </div>
-      <div class="stat">
-        <div class="stat-value stat-icon">
-          <Icon name="lucide:database" />
+    <div class="hero-grid">
+      <div class="hero-copy">
+        <span class="hero-badge">
+          <Icon name="lucide:sparkles" />
+          {t('hero.badge')}
+        </span>
+        <h1 class="hero-title">
+          {t('hero.title1')}
+          <span class="grad">{t('hero.title2')}</span>
+        </h1>
+        <p class="hero-sub">{t('hero.subtitle')}</p>
+        <div class="hero-cta">
+          <a class="btn btn-primary btn-lg" href={githubUrl} target="_blank" rel="noopener">
+            <Icon name="lucide:rocket" />
+            {t('hero.cta.start')}
+          </a>
+          <a class="btn btn-ghost btn-lg" href={githubUrl} target="_blank" rel="noopener">
+            <Icon name="lucide:github" />
+            {t('hero.cta.github')}
+          </a>
         </div>
-        <div class="stat-label">{t('hero.stat.tables')}</div>
+        <p class="hero-hint">
+          <Icon name="lucide:zap" />
+          {t('hero.hint')}
+        </p>
+        <div class="hero-stats">
+          <div class="stat">
+            <div class="stat-value">{t('hero.stat.typesValue')}</div>
+            <div class="stat-label">{t('hero.stat.types')}</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value">{t('hero.stat.modesValue')}</div>
+            <div class="stat-label">{t('hero.stat.modes')}</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value">{t('hero.stat.startValue')}</div>
+            <div class="stat-label">{t('hero.stat.start')}</div>
+          </div>
+        </div>
       </div>
-      <div class="stat">
-        <div class="stat-value">2</div>
-        <div class="stat-label">{t('hero.stat.mode')}</div>
+
+      <div class="hero-visual">
+        <div class="window">
+          <div class="window-bar">
+            <div class="window-dots" aria-hidden="true">
+              <span></span><span></span><span></span>
+            </div>
+            <div class="window-title">{t('hero.code.tab')}</div>
+          </div>
+          <div class="window-body">
+            <aside class="file-tree" aria-hidden="true">
+              <div class="tree-title">
+                <Icon name="lucide:folder-tree" />
+                generated/
+              </div>
+              {treeFiles.map((f) => (
+                <div class={`tree-item${f.active ? ' active' : ''}`}>
+                  <span class="indent"></span>
+                  <Icon name="lucide:file-code" />
+                  {f.name}
+                </div>
+              ))}
+            </aside>
+            <div class="code-panel">
+              <div class="code-head">
+                <span class="code-filename">
+                  <Icon name="lucide:braces" />
+                  {t('hero.code.filename')}
+                </span>
+                <button
+                  class="copy-btn"
+                  type="button"
+                  data-copied={t('hero.code.copied')}
+                  data-default={t('hero.code.copy')}
+                >
+                  <Icon name="lucide:copy" />
+                  <span>{t('hero.code.copy')}</span>
+                </button>
+              </div>
+              <pre class="code-pre"><code><span class="tok-keyword">package</span> org.flyingsparrow.web.controller;
+
+<span class="tok-keyword">import</span> javax.annotation.Resource;
+<span class="tok-keyword">import</span> org.springframework.web.bind.annotation.*;
+
+<span class="tok-comment">/** 用户信息接口 */</span>
+<span class="tok-annotation">@RestController</span>
+<span class="tok-annotation">@RequestMapping</span>(<span class="tok-string">"/api/user-info"</span>)
+<span class="tok-keyword">public class</span> <span class="tok-type">UserInfoController</span> &#123;
+
+    <span class="tok-annotation">@Resource</span>
+    <span class="tok-keyword">private</span> <span class="tok-type">UserInfoService</span> userInfoService;
+
+    <span class="tok-annotation">@GetMapping</span>(<span class="tok-string">"/list"</span>)
+    <span class="tok-keyword">public</span> List&lt;<span class="tok-type">UserInfo</span>&gt; <span class="tok-func">list</span>(<span class="tok-type">UserInfoQuery</span> query) &#123;
+        <span class="tok-keyword">return</span> userInfoService.<span class="tok-func">list</span>(query);
+    &#125;
+&#125;</code></pre>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </section>
+
+<script>
+  const copyBtn = document.querySelector('.copy-btn');
+  copyBtn?.addEventListener('click', async () => {
+    const code = document.querySelector('.code-pre code')?.textContent ?? '';
+    const label = copyBtn.querySelector('span');
+    const defaultLabel = copyBtn.dataset.default;
+    const copiedLabel = copyBtn.dataset.copied;
+    try {
+      await navigator.clipboard.writeText(code);
+      if (label) label.textContent = copiedLabel ?? 'Copied';
+      copyBtn.setAttribute('aria-pressed', 'true');
+      setTimeout(() => {
+        if (label) label.textContent = defaultLabel ?? 'Copy';
+        copyBtn.setAttribute('aria-pressed', 'false');
+      }, 1500);
+    } catch (e) {
+      /* clipboard unavailable */
+    }
+  });
+</script>

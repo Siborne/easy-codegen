@@ -9,7 +9,7 @@ interface Props {
 }
 
 const { lang, t } = Astro.props;
-const items = ui[lang]['quick.prereq.items'];
+const items = ui[lang]['quick.env.items'];
 ---
 
 <section class="section" id="quickstart">
@@ -18,11 +18,31 @@ const items = ui[lang]['quick.prereq.items'];
       <h2>{t('quick.title')}</h2>
       <p>{t('quick.subtitle')}</p>
     </div>
+
     <div class="quick-grid">
+      <div class="quick-card featured">
+        <h3>
+          <Icon name="lucide:container" />
+          {t('quick.docker.title')}
+        </h3>
+        <p>{t('quick.docker.desc')}</p>
+        <pre class="code-block"><code>docker compose up -d --build</code></pre>
+        <p class="quick-note">
+          <Icon name="lucide:globe" />
+          {t('quick.docker.note')}
+        </p>
+      </div>
+
       <div class="quick-card">
         <h3>
+          <Icon name="lucide:terminal" />
+          {t('quick.local.title')}
+        </h3>
+        <p>{t('quick.local.desc')}</p>
+
+        <h3>
           <Icon name="lucide:check" />
-          {t('quick.prereq')}
+          {t('quick.env')}
         </h3>
         <ul class="quick-list">
           {items.map((item) => (
@@ -33,7 +53,7 @@ const items = ui[lang]['quick.prereq.items'];
           ))}
         </ul>
 
-        <h3 style="margin-top: 26px">
+        <h3>
           <Icon name="lucide:terminal" />
           {t('quick.build')}
         </h3>
@@ -42,29 +62,52 @@ cd ../easy-codegen-web <span class="cm">&amp;&amp;</span> mvn install -DskipTest
 cd ../easy-codegen-desktop <span class="cm">&amp;&amp;</span> mvn package -DskipTests</code></pre>
 
         <h3>
-          <Icon name="lucide:terminal" />
+          <Icon name="lucide:refresh-cw" />
           {t('quick.dev')}
         </h3>
         <pre class="code-block"><code>cd easy-codegen-web/frontend
 npm install
 npm run dev <span class="cm"># http://localhost:6000</span></code></pre>
-      </div>
 
-      <div class="quick-card">
         <h3>
-          <Icon name="lucide:monitor" />
-          {t('quick.run.desktop')}
+          <Icon name="lucide:rocket" />
+          {t('quick.run.title')}
         </h3>
-        <p style="font-size: 0.92rem; color: var(--text-dim); margin-bottom: 16px">{t('quick.run.desktop.desc')}</p>
-        <pre class="code-block"><code>start-desktop.bat</code></pre>
-
-        <h3 style="margin-top: 26px">
-          <Icon name="lucide:globe" />
-          {t('quick.run.web')}
-        </h3>
-        <p style="font-size: 0.92rem; color: var(--text-dim); margin-bottom: 16px">{t('quick.run.web.desc')}</p>
-        <pre class="code-block"><code>start-web.bat <span class="cm"># http://localhost:9000</span></code></pre>
+        <div class="run-row">
+          <p>
+            <strong>{t('quick.run.desktop')}</strong>
+            <span>{t('quick.run.desktop.desc')}</span>
+          </p>
+          <pre class="code-block"><code>start-desktop.bat</code></pre>
+        </div>
+        <div class="run-row">
+          <p>
+            <strong>{t('quick.run.web')}</strong>
+            <span>{t('quick.run.web.desc')}</span>
+          </p>
+          <pre class="code-block"><code>start-web.bat <span class="cm"># http://localhost:9000</span></code></pre>
+        </div>
       </div>
     </div>
   </div>
 </section>
+
+<style>
+  .run-row {
+    margin-top: 14px;
+  }
+
+  .run-row p {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin: 0 0 10px;
+    font-size: 0.93rem;
+    color: var(--text-dim);
+  }
+
+  .run-row strong {
+    color: var(--text);
+    font-size: 0.98rem;
+  }
+</style>

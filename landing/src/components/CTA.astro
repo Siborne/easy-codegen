@@ -7,6 +7,7 @@ interface Props {
 }
 
 const { t } = Astro.props;
+const githubUrl = 'https://github.com/Siborne/easy-codegen';
 ---
 
 <section class="section">
@@ -14,7 +15,7 @@ const { t } = Astro.props;
     <div class="cta">
       <h2>{t('cta.title')}</h2>
       <p>{t('cta.desc')}</p>
-      <a class="btn btn-primary btn-lg" href="https://github.com/Siborne/easy-codegen" target="_blank" rel="noopener">
+      <a class="btn btn-primary btn-lg" href={githubUrl} target="_blank" rel="noopener">
         <Icon name="lucide:arrow-right" />
         {t('cta.button')}
       </a>
