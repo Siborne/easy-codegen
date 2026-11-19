@@ -1,6 +1,9 @@
 # Maven build output
 target/
 
+# jpackage / release 输出
+dist/
+
 # Node
 node_modules/
 .vite/
@@ -16,6 +19,9 @@ landing/.astro/
 # OS
 .DS_Store
 Thumbs.db
+
+# 本地运行日志
+desktop-run.*.log
 
 # Reasonix
 .reasonix/

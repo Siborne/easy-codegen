@@ -1,9 +1,11 @@
 package org.flyingsparrow.web.controller;
 
 import org.flyingsparrow.web.config.CodegenConfigManager;
+import org.flyingsparrow.web.util.I18nMessages;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -26,7 +28,8 @@ public class ConfigController {
     }
 
     @GetMapping
-    public Map<String, Object> getConfig() {
+    public Map<String, Object> getConfig(
+            @RequestHeader(value = "X-Lang", required = false, defaultValue = "zh") String lang) {
         Map<String, Object> result = new LinkedHashMap<>();
         try {
             result.put("success", true);
@@ -34,22 +37,24 @@ public class ConfigController {
             result.put("file", configManager.getConfigFile().getAbsolutePath());
         } catch (Exception e) {
             result.put("success", false);
-            result.put("message", "读取配置失败: " + e.getMessage());
+            result.put("message", I18nMessages.get(lang, "config.read.error", e.getMessage()));
         }
         return result;
     }
 
     @PostMapping
-    public Map<String, Object> saveConfig(@RequestBody Map<String, String> config) {
+    public Map<String, Object> saveConfig(
+            @RequestBody Map<String, String> config,
+            @RequestHeader(value = "X-Lang", required = false, defaultValue = "zh") String lang) {
         Map<String, Object> result = new LinkedHashMap<>();
         try {
             configManager.saveConfig(config);
             result.put("success", true);
-            result.put("message", "配置已保存并生效");
+            result.put("message", I18nMessages.get(lang, "config.save.success"));
             result.put("file", configManager.getConfigFile().getAbsolutePath());
         } catch (Exception e) {
             result.put("success", false);
-            result.put("message", "保存配置失败: " + e.getMessage());
+            result.put("message", I18nMessages.get(lang, "config.save.error", e.getMessage()));
         }
         return result;
     }

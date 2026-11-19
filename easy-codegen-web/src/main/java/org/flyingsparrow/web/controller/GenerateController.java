@@ -8,6 +8,7 @@ import org.flyingsparrow.builder.PreviewFile;
 import org.flyingsparrow.bean.TableInfo;
 import org.flyingsparrow.utils.PropertiesUtils;
 import org.flyingsparrow.web.config.CodegenConfigManager;
+import org.flyingsparrow.web.util.I18nMessages;
 import org.flyingsparrow.web.util.JsonUtil;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -15,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -43,11 +45,14 @@ public class GenerateController {
      * 测试数据库连接（使用当前生效配置）
      */
     @PostMapping("/connection/test")
-    public Map<String, Object> testConnection() {
+    public Map<String, Object> testConnection(
+            @RequestHeader(value = "X-Lang", required = false, defaultValue = "zh") String lang) {
         Map<String, Object> result = new LinkedHashMap<>();
         String error = BuildTable.testConnection(PropertiesUtils.getProperties());
         result.put("success", error == null);
-        result.put("message", error == null ? "连接成功" : "连接失败: " + error);
+        result.put("message", error == null
+                ? I18nMessages.get(lang, "connection.success")
+                : I18nMessages.get(lang, "connection.error", error));
         return result;
     }
 
@@ -55,7 +60,8 @@ public class GenerateController {
      * 加载表列表（使用当前生效配置）
      */
     @PostMapping("/tables")
-    public Map<String, Object> listTables() {
+    public Map<String, Object> listTables(
+            @RequestHeader(value = "X-Lang", required = false, defaultValue = "zh") String lang) {
         Map<String, Object> result = new LinkedHashMap<>();
         try {
             List<TableInfo> tableInfoList = BuildTable.getTables(PropertiesUtils.getProperties(), null);
@@ -72,7 +78,7 @@ public class GenerateController {
             result.put("tables", tables);
         } catch (Exception e) {
             result.put("success", false);
-            result.put("message", "加载表列表失败: " + e.getMessage());
+            result.put("message", I18nMessages.get(lang, "tables.error", e.getMessage()));
         }
         return result;
     }
@@ -81,7 +87,9 @@ public class GenerateController {
      * 一键生成：可携带完整配置（自动保存生效）、勾选的表名与生成类型；表名/类型为空表示全部
      */
     @PostMapping("/generate")
-    public Map<String, Object> generate(@RequestBody(required = false) GenerateRequest request) {
+    public Map<String, Object> generate(
+            @RequestBody(required = false) GenerateRequest request,
+            @RequestHeader(value = "X-Lang", required = false, defaultValue = "zh") String lang) {
         Map<String, Object> result = new LinkedHashMap<>();
         try {
             if (request != null && request.getConfig() != null && !request.getConfig().isEmpty()) {
@@ -90,18 +98,18 @@ public class GenerateController {
             String pathBase = PropertiesUtils.getString("path.base");
             if (pathBase == null || pathBase.trim().isEmpty()) {
                 result.put("success", false);
-                result.put("message", "输出路径 path.base 未配置");
+                result.put("message", I18nMessages.get(lang, "generate.path.missing"));
                 return result;
             }
             File outputDir = new File(pathBase.trim());
             if (!outputDir.exists() && !outputDir.mkdirs()) {
                 result.put("success", false);
-                result.put("message", "输出目录无法创建: " + outputDir.getAbsolutePath());
+                result.put("message", I18nMessages.get(lang, "generate.dir.create.failed", outputDir.getAbsolutePath()));
                 return result;
             }
             if (!outputDir.isDirectory()) {
                 result.put("success", false);
-                result.put("message", "输出路径不是目录: " + outputDir.getAbsolutePath());
+                result.put("message", I18nMessages.get(lang, "generate.dir.not.dir", outputDir.getAbsolutePath()));
                 return result;
             }
 
@@ -111,13 +119,13 @@ public class GenerateController {
             result.put("success", generateResult.isSuccess());
             if (generateResult.isSuccess()) {
                 result.put("files", generateResult.getFiles());
-                result.put("message", "生成成功，共 " + generateResult.getFiles().size() + " 个文件");
+                result.put("message", I18nMessages.get(lang, "generate.success", generateResult.getFiles().size()));
             } else {
-                result.put("message", generateResult.getError());
+                result.put("message", I18nMessages.get(lang, "generate.error", generateResult.getError()));
             }
         } catch (Exception e) {
             result.put("success", false);
-            result.put("message", "生成失败: " + e.getMessage());
+            result.put("message", I18nMessages.get(lang, "generate.error", e.getMessage()));
         }
         return result;
     }
@@ -126,7 +134,9 @@ public class GenerateController {
      * 代码预览：返回每张表每个类型的代码内容（不写文件）
      */
     @PostMapping("/preview")
-    public Map<String, Object> preview(@RequestBody(required = false) GenerateRequest request) {
+    public Map<String, Object> preview(
+            @RequestBody(required = false) GenerateRequest request,
+            @RequestHeader(value = "X-Lang", required = false, defaultValue = "zh") String lang) {
         Map<String, Object> result = new LinkedHashMap<>();
         try {
             if (request != null && request.getConfig() != null && !request.getConfig().isEmpty()) {
@@ -139,7 +149,7 @@ public class GenerateController {
             result.put("files", files);
         } catch (Exception e) {
             result.put("success", false);
-            result.put("message", "预览失败: " + e.getMessage());
+            result.put("message", I18nMessages.get(lang, "preview.error", e.getMessage()));
         }
         return result;
     }
@@ -148,7 +158,9 @@ public class GenerateController {
      * zip 下载：将勾选表与类型生成的代码打包下载
      */
     @PostMapping("/generate/download")
-    public ResponseEntity<byte[]> download(@RequestBody(required = false) GenerateRequest request) {
+    public ResponseEntity<byte[]> download(
+            @RequestBody(required = false) GenerateRequest request,
+            @RequestHeader(value = "X-Lang", required = false, defaultValue = "zh") String lang) {
         try {
             if (request != null && request.getConfig() != null && !request.getConfig().isEmpty()) {
                 configManager.saveConfig(request.getConfig());
@@ -162,7 +174,7 @@ public class GenerateController {
                     .body(zipBytes);
         } catch (Exception e) {
             // 失败时返回错误 JSON（约定前端以 blob 读取时判断 content-type）；消息转义防响应污染
-            String msg = "{\"success\":false,\"message\":\"打包下载失败: " + JsonUtil.escape(e.getMessage()) + "\"}";
+            String msg = "{\"success\":false,\"message\":\"" + JsonUtil.escape(I18nMessages.get(lang, "download.error", e.getMessage())) + "\"}";
             return ResponseEntity.ok()
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(msg.getBytes());

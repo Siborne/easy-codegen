@@ -1,0 +1,6 @@
+# 打包分发模式（jpackage / GitHub Actions 发布时启用 spring.profiles.active=packaged）
+codegen:
+  # 配置文件写到用户目录，避免安装目录无写权限；首次运行自动复制 classpath 的默认配置
+  config-file: ${CODEGEN_CONFIG_FILE:${user.home}/.easy-codegen/application.properties}
+  # 配置模板目录同样放到用户目录
+  template-dir: ${CODEGEN_TEMPLATE_DIR:${user.home}/.easy-codegen/templates}

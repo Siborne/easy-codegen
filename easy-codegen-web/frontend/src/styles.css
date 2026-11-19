@@ -1,0 +1,381 @@
+/* ==========================================================================
+   easy-codegen 可视化面板 — 全局样式
+   视觉与 landing 保持一致：靛蓝 → 紫 → 青 渐变、玻璃拟态 Header、圆角卡片。
+   Light / dark 通过 <html data-theme> 切换，入口脚本会在首帧前写入。
+   ========================================================================== */
+
+:root {
+  --bg: #f7f8fc;
+  --bg-soft: #ffffff;
+  --bg-elevated: #ffffff;
+  --text: #101828;
+  --text-dim: #55627a;
+  --text-faint: #8b94a7;
+  --border: #e5e9f2;
+  --border-strong: #d6dced;
+  --accent: #4f46e5;
+  --accent-strong: #4338ca;
+  --accent-2: #0891b2;
+  --accent-soft: rgba(79, 70, 229, 0.09);
+  --accent-soft-2: rgba(8, 145, 178, 0.12);
+  --grad: linear-gradient(120deg, #4f46e5 0%, #7c3aed 48%, #0891b2 100%);
+  --grad-soft: linear-gradient(120deg, rgba(79, 70, 229, 0.14), rgba(8, 145, 178, 0.14));
+  --code-bg: #0d1220;
+  --code-border: #1f2a44;
+  --code-text: #e6eaf5;
+  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.05);
+  --shadow-md: 0 12px 32px rgba(16, 24, 40, 0.08);
+  --shadow-lg: 0 24px 64px rgba(16, 24, 40, 0.14);
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --header-h: 68px;
+  --font-sans: "Inter", "PingFang SC", "Microsoft YaHei", system-ui, -apple-system,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", "SFMono-Regular", "Consolas", "Liberation Mono",
+    Menlo, monospace;
+}
+
+[data-theme="dark"] {
+  --bg: #0a0e1a;
+  --bg-soft: #0f1526;
+  --bg-elevated: #131b31;
+  --text: #e8ecf7;
+  --text-dim: #a6b0c8;
+  --text-faint: #7c87a3;
+  --border: #1e2740;
+  --border-strong: #2a3554;
+  --accent: #818cf8;
+  --accent-strong: #a5b4fc;
+  --accent-2: #22d3ee;
+  --accent-soft: rgba(129, 140, 248, 0.12);
+  --accent-soft-2: rgba(34, 211, 238, 0.12);
+  --grad: linear-gradient(120deg, #818cf8 0%, #a78bfa 48%, #22d3ee 100%);
+  --grad-soft: linear-gradient(120deg, rgba(129, 140, 248, 0.18), rgba(34, 211, 238, 0.16));
+  --code-bg: #070b16;
+  --code-border: #1c2740;
+  --code-text: #e6eaf5;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 12px 32px rgba(0, 0, 0, 0.38);
+  --shadow-lg: 0 24px 64px rgba(0, 0, 0, 0.5);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: var(--font-sans);
+  color: var(--text);
+  background:
+    radial-gradient(760px 360px at 12% -4%, var(--accent-soft), transparent 62%),
+    radial-gradient(780px 420px at 92% -2%, var(--accent-soft-2), transparent 60%),
+    var(--bg);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.container {
+  width: min(1280px, 100% - 40px);
+  margin-inline: auto;
+}
+
+.grad {
+  background: var(--grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Header */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  height: var(--header-h);
+  display: flex;
+  align-items: center;
+  background: color-mix(in srgb, var(--bg) 82%, transparent);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border);
+}
+
+.site-header .container {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-weight: 800;
+  font-size: 1.06rem;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.brand-mark {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  color: #fff;
+  background: var(--grad);
+  font-size: 1.2rem;
+  box-shadow: 0 8px 18px rgba(79, 70, 229, 0.32);
+}
+
+.brand-sub {
+  color: var(--text-faint);
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+  min-width: 0;
+}
+
+.icon-btn {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: var(--text-dim);
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: color 0.16s ease, border-color 0.16s ease, transform 0.16s ease;
+}
+
+.icon-btn:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.lang-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+}
+
+.lang-option {
+  padding: 0.28rem 0.7rem;
+  border-radius: 999px;
+  border: 0;
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.16s ease, background-color 0.16s ease;
+}
+
+.lang-option.active {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.lang-option:hover {
+  color: var(--text);
+}
+
+.panel-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 220px;
+  padding: 40px;
+}
+
+/* Main panel area */
+.panel-section {
+  flex: 1;
+  padding-top: 20px;
+  padding-bottom: 48px;
+}
+
+/* Ant Design 组件视觉统一 */
+.ant-card {
+  background: var(--bg-elevated) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-md) !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.ant-card-head {
+  border-bottom: 1px solid var(--border) !important;
+  padding-inline: 22px !important;
+  min-height: 60px !important;
+}
+
+.ant-card-head-title {
+  color: var(--text) !important;
+  font-weight: 700 !important;
+}
+
+.ant-card-body {
+  padding: 22px !important;
+}
+
+.ant-tabs-nav {
+  margin-bottom: 18px !important;
+}
+
+.ant-tabs-nav::before {
+  border-bottom: 1px solid var(--border) !important;
+}
+
+.ant-tabs-tab {
+  padding: 10px 16px !important;
+  border-radius: 999px !important;
+  transition: background-color 0.16s ease, color 0.16s ease !important;
+}
+
+.ant-tabs-tab + .ant-tabs-tab {
+  margin-left: 8px !important;
+}
+
+.ant-tabs-tab-btn {
+  color: var(--text-dim) !important;
+  font-weight: 500 !important;
+}
+
+.ant-tabs-tab:hover .ant-tabs-tab-btn {
+  color: var(--text) !important;
+}
+
+.ant-tabs-tab-active {
+  background: var(--accent-soft) !important;
+}
+
+.ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: var(--accent) !important;
+  font-weight: 700 !important;
+}
+
+.ant-tabs-ink-bar {
+  background: var(--grad) !important;
+  height: 3px !important;
+  border-radius: 999px !important;
+}
+
+.ant-input,
+.ant-input-affix-wrapper,
+.ant-input-number,
+.ant-input-number-input,
+.ant-select-selector,
+.ant-picker {
+  border-radius: 10px !important;
+}
+
+.ant-btn {
+  border-radius: 10px !important;
+  font-weight: 500 !important;
+  box-shadow: none !important;
+}
+
+.ant-btn-primary {
+  background: var(--grad) !important;
+  border: 0 !important;
+  box-shadow: 0 8px 20px rgba(79, 70, 229, 0.24) !important;
+}
+
+.ant-btn-primary:hover {
+  box-shadow: 0 10px 24px rgba(79, 70, 229, 0.32) !important;
+}
+
+.ant-tag {
+  border-radius: 999px !important;
+}
+
+.ant-alert {
+  border-radius: var(--radius-sm) !important;
+}
+
+.ant-modal-content {
+  border-radius: var(--radius-md) !important;
+}
+
+.ant-drawer-content {
+  background: var(--bg-soft) !important;
+}
+
+.ant-drawer-header {
+  border-bottom: 1px solid var(--border) !important;
+}
+
+.ant-form-item-label > label {
+  color: var(--text-dim) !important;
+}
+
+/* 代码预览块 */
+.code-view {
+  background: var(--code-bg) !important;
+  border: 1px solid var(--code-border) !important;
+  border-radius: var(--radius-sm) !important;
+}
+
+.code-view pre {
+  color: var(--code-text) !important;
+}
+
+/* Footer */
+.site-footer {
+  padding: 22px 0 30px;
+  border-top: 1px solid var(--border);
+}
+
+.site-footer .container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  color: var(--text-faint);
+  font-size: 0.85rem;
+}
+
+.site-footer strong {
+  color: var(--text);
+}
+
+/* 响应式 */
+@media (max-width: 720px) {
+  .brand-sub {
+    display: none;
+  }
+}

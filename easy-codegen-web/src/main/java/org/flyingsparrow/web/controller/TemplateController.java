@@ -1,12 +1,14 @@
 package org.flyingsparrow.web.controller;
 
 import org.flyingsparrow.web.config.ConfigFileStore;
+import org.flyingsparrow.web.util.I18nMessages;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -73,20 +75,23 @@ public class TemplateController {
      * 保存当前配置为模板
      */
     @PostMapping("/{name}")
-    public Map<String, Object> save(@PathVariable String name, @RequestBody Map<String, String> config) {
+    public Map<String, Object> save(
+            @PathVariable String name,
+            @RequestBody Map<String, String> config,
+            @RequestHeader(value = "X-Lang", required = false, defaultValue = "zh") String lang) {
         Map<String, Object> result = new LinkedHashMap<>();
         if (!isValidName(name)) {
             result.put("success", false);
-            result.put("message", "模板名不合法");
+            result.put("message", I18nMessages.get(lang, "template.name.invalid"));
             return result;
         }
         try {
             ConfigFileStore.save(templateFile(name.trim()), config);
             result.put("success", true);
-            result.put("message", "模板已保存: " + name.trim());
+            result.put("message", I18nMessages.get(lang, "template.save.success", name.trim()));
         } catch (IOException e) {
             result.put("success", false);
-            result.put("message", "保存模板失败: " + e.getMessage());
+            result.put("message", I18nMessages.get(lang, "template.save.error", e.getMessage()));
         }
         return result;
     }
@@ -95,17 +100,19 @@ public class TemplateController {
      * 读取模板内容
      */
     @GetMapping("/{name}")
-    public Map<String, Object> load(@PathVariable String name) {
+    public Map<String, Object> load(
+            @PathVariable String name,
+            @RequestHeader(value = "X-Lang", required = false, defaultValue = "zh") String lang) {
         Map<String, Object> result = new LinkedHashMap<>();
         if (!isValidName(name)) {
             result.put("success", false);
-            result.put("message", "模板名不合法");
+            result.put("message", I18nMessages.get(lang, "template.name.invalid"));
             return result;
         }
         File file = templateFile(name);
         if (!file.exists()) {
             result.put("success", false);
-            result.put("message", "模板不存在: " + name);
+            result.put("message", I18nMessages.get(lang, "template.not.found", name));
             return result;
         }
         try {
@@ -113,7 +120,7 @@ public class TemplateController {
             result.put("data", ConfigFileStore.load(file));
         } catch (IOException e) {
             result.put("success", false);
-            result.put("message", "读取模板失败: " + e.getMessage());
+            result.put("message", I18nMessages.get(lang, "template.load.error", e.getMessage()));
         }
         return result;
     }
@@ -122,25 +129,27 @@ public class TemplateController {
      * 删除模板
      */
     @DeleteMapping("/{name}")
-    public Map<String, Object> delete(@PathVariable String name) {
+    public Map<String, Object> delete(
+            @PathVariable String name,
+            @RequestHeader(value = "X-Lang", required = false, defaultValue = "zh") String lang) {
         Map<String, Object> result = new LinkedHashMap<>();
         if (!isValidName(name)) {
             result.put("success", false);
-            result.put("message", "模板名不合法");
+            result.put("message", I18nMessages.get(lang, "template.name.invalid"));
             return result;
         }
         File file = templateFile(name);
         if (!file.exists()) {
             result.put("success", false);
-            result.put("message", "模板不存在: " + name);
+            result.put("message", I18nMessages.get(lang, "template.not.found", name));
             return result;
         }
         if (file.delete()) {
             result.put("success", true);
-            result.put("message", "模板已删除: " + name);
+            result.put("message", I18nMessages.get(lang, "template.delete.success", name));
         } else {
             result.put("success", false);
-            result.put("message", "删除模板失败");
+            result.put("message", I18nMessages.get(lang, "template.delete.error"));
         }
         return result;
     }

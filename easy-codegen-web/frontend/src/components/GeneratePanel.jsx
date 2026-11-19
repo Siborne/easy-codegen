@@ -22,21 +22,23 @@ import {
   CheckOutlined
 } from '@ant-design/icons';
 import { api } from '../api';
+import { useI18n } from '../i18n';
 
 const TYPE_OPTIONS = [
-  { value: 'base', label: '基础类' },
-  { value: 'po', label: 'PO 实体' },
-  { value: 'query', label: 'Query 查询' },
-  { value: 'mapper', label: 'Mapper 接口' },
-  { value: 'mapperXml', label: 'Mapper XML' },
-  { value: 'service', label: 'Service 接口' },
-  { value: 'serviceImpl', label: 'ServiceImpl' },
-  { value: 'controller', label: 'Controller' }
+  { value: 'base', key: 'type.base' },
+  { value: 'po', key: 'type.po' },
+  { value: 'query', key: 'type.query' },
+  { value: 'mapper', key: 'type.mapper' },
+  { value: 'mapperXml', key: 'type.mapperXml' },
+  { value: 'service', key: 'type.service' },
+  { value: 'serviceImpl', key: 'type.serviceImpl' },
+  { value: 'controller', key: 'type.controller' }
 ];
 const ALL_TYPES = TYPE_OPTIONS.map((t) => t.value);
 
 export default function GeneratePanel({ config, selectedTables }) {
   const { message, modal } = App.useApp();
+  const { t } = useI18n();
   const [types, setTypes] = useState(ALL_TYPES);
   const [generating, setGenerating] = useState(false);
   const [result, setResult] = useState(null); // { success, message, files }
@@ -47,17 +49,18 @@ export default function GeneratePanel({ config, selectedTables }) {
   const [copied, setCopied] = useState(false);
   const [downloading, setDownloading] = useState(false);
 
+  const typeOptions = TYPE_OPTIONS.map(({ value, key }) => ({ value, label: t(key) }));
   const buildRequest = () => ({ config: config || {}, tables: selectedTables, types });
 
   const handleGenerate = () => {
     const tableTip =
-      selectedTables.length > 0 ? selectedTables.join(', ') : '全部表';
-    const typeTip = types.length === ALL_TYPES.length ? '全部类型' : types.join(', ');
+      selectedTables.length > 0 ? selectedTables.join(', ') : t('generate.allTables');
+    const typeTip = types.length === ALL_TYPES.length ? t('generate.allTypes') : types.join(', ');
     modal.confirm({
-      title: '确认生成？',
-      content: '表: ' + tableTip + '；类型: ' + typeTip,
-      okText: '开始生成',
-      cancelText: '取消',
+      title: t('generate.confirmTitle'),
+      content: t('generate.confirmContent', { tables: tableTip, types: typeTip }),
+      okText: t('generate.ok'),
+      cancelText: t('common.cancel'),
       onOk: async () => {
         setGenerating(true);
         setResult(null);
@@ -67,11 +70,11 @@ export default function GeneratePanel({ config, selectedTables }) {
           if (res.success) {
             message.success(res.message);
           } else {
-            message.error(res.message || '生成失败');
+            message.error(res.message || t('generate.failed'));
           }
         } catch (e) {
-          setResult({ success: false, message: '生成失败: ' + e.message, files: [] });
-          message.error('生成失败: ' + e.message);
+          setResult({ success: false, message: `${t('generate.failed')}: ${e.message}`, files: [] });
+          message.error(`${t('generate.failed')}: ${e.message}`);
         } finally {
           setGenerating(false);
         }
@@ -81,7 +84,7 @@ export default function GeneratePanel({ config, selectedTables }) {
 
   const handlePreview = async () => {
     if (types.length === 0) {
-      message.warning('请至少选择一种生成类型');
+      message.warning(t('generate.typeRequired'));
       return;
     }
     setPreviewing(true);
@@ -94,13 +97,13 @@ export default function GeneratePanel({ config, selectedTables }) {
         const files = res.files || [];
         setPreviewFiles(files);
         if (files.length === 0) {
-          message.warning('没有可预览的文件，请检查表与类型选择');
+          message.warning(t('generate.noPreview'));
         }
       } else {
-        message.error(res.message || '预览失败');
+        message.error(res.message || t('generate.previewFailed'));
       }
     } catch (e) {
-      message.error('预览失败: ' + e.message);
+      message.error(`${t('generate.previewFailed')}: ${e.message}`);
     } finally {
       setPreviewing(false);
     }
@@ -108,7 +111,7 @@ export default function GeneratePanel({ config, selectedTables }) {
 
   const handleDownload = async () => {
     if (types.length === 0) {
-      message.warning('请至少选择一种生成类型');
+      message.warning(t('generate.typeRequired'));
       return;
     }
     setDownloading(true);
@@ -122,9 +125,9 @@ export default function GeneratePanel({ config, selectedTables }) {
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
-      message.success('已开始下载 easy-codegen.zip');
+      message.success(t('generate.downloadStarted'));
     } catch (e) {
-      message.error(e.message || '下载失败');
+      message.error(e.message || t('generate.downloadFailed'));
     } finally {
       setDownloading(false);
     }
@@ -138,28 +141,24 @@ export default function GeneratePanel({ config, selectedTables }) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (e) {
-      message.error('复制失败');
+      message.error(t('generate.copyFailed'));
     }
   };
 
   const currentFile = previewFiles[previewIndex];
 
   return (
-    <Card title="代码生成">
+    <Card title={t('generate.title')}>
       <Space direction="vertical" style={{ width: '100%' }} size="large">
         {/* 生成类型 */}
         <div>
           <div style={{ marginBottom: 8 }}>
-            <Typography.Text strong>生成类型</Typography.Text>
+            <Typography.Text strong>{t('generate.types')}</Typography.Text>
             <Typography.Text type="secondary" style={{ marginLeft: 8, fontSize: 12 }}>
-              可只生成需要的类型，如仅 Entity 或仅 Mapper
+              {t('generate.typesHint')}
             </Typography.Text>
           </div>
-          <Checkbox.Group
-            options={TYPE_OPTIONS}
-            value={types}
-            onChange={setTypes}
-          />
+          <Checkbox.Group options={typeOptions} value={types} onChange={setTypes} />
         </div>
 
         <Divider style={{ margin: 0 }} />
@@ -172,7 +171,7 @@ export default function GeneratePanel({ config, selectedTables }) {
             loading={generating}
             onClick={handleGenerate}
           >
-            一键生成
+            {t('generate.run')}
           </Button>
           <Button
             size="large"
@@ -180,7 +179,7 @@ export default function GeneratePanel({ config, selectedTables }) {
             loading={previewing}
             onClick={handlePreview}
           >
-            代码预览
+            {t('generate.preview')}
           </Button>
           <Button
             size="large"
@@ -188,10 +187,11 @@ export default function GeneratePanel({ config, selectedTables }) {
             loading={downloading}
             onClick={handleDownload}
           >
-            下载 ZIP
+            {t('generate.download')}
           </Button>
           <Typography.Text type="secondary">
-            表: {selectedTables.length > 0 ? selectedTables.join(', ') : '全部表'}
+            {t('generate.tablesLabel')}:{' '}
+            {selectedTables.length > 0 ? selectedTables.join(', ') : t('generate.allTables')}
           </Typography.Text>
         </Space>
 
@@ -218,7 +218,9 @@ export default function GeneratePanel({ config, selectedTables }) {
               }
             />
             <div>
-              <Tag color={result.success ? 'green' : 'red'}>共生成 {result.files.length} 个文件</Tag>
+              <Tag color={result.success ? 'green' : 'red'}>
+                {t('generate.fileCount', { count: result.files.length })}
+              </Tag>
             </div>
           </>
         )}
@@ -226,18 +228,18 @@ export default function GeneratePanel({ config, selectedTables }) {
 
       {/* 代码预览抽屉 */}
       <Drawer
-        title="代码预览"
+        title={t('generate.drawerTitle')}
         width={860}
         open={previewOpen}
         onClose={() => setPreviewOpen(false)}
         extra={
-          <Tooltip title="复制当前文件">
+          <Tooltip title={t('generate.copyCurrent')}>
             <Button
               icon={copied ? <CheckOutlined /> : <CopyOutlined />}
               onClick={handleCopy}
               disabled={!currentFile}
             >
-              {copied ? '已复制' : '复制'}
+              {copied ? t('generate.copied') : t('generate.copy')}
             </Button>
           </Tooltip>
         }
@@ -247,28 +249,30 @@ export default function GeneratePanel({ config, selectedTables }) {
             style={{ width: '100%' }}
             value={previewFiles[previewIndex] ? previewIndex : undefined}
             onChange={setPreviewIndex}
-            placeholder={previewing ? '正在生成预览...' : '选择文件'}
+            placeholder={previewing ? t('generate.loadingPreview') : t('generate.selectFile')}
             options={previewFiles.map((f, i) => ({ value: i, label: f.name }))}
             showSearch
             optionFilterProp="label"
           />
           <div
+            className="code-view"
             style={{
-              background: 'rgba(0,0,0,0.04)',
-              borderRadius: 6,
+              borderRadius: 10,
               padding: 12,
               maxHeight: '62vh',
               overflow: 'auto'
             }}
           >
-            {previewing && !currentFile && <Typography.Text type="secondary">正在生成预览...</Typography.Text>}
+            {previewing && !currentFile && (
+              <Typography.Text type="secondary">{t('generate.loadingPreview')}</Typography.Text>
+            )}
             {!previewing && currentFile && (
               <pre style={{ margin: 0, fontFamily: 'Consolas, monospace', fontSize: 12, whiteSpace: 'pre', minWidth: 'max-content' }}>
                 {currentFile.content}
               </pre>
             )}
             {!previewing && !currentFile && (
-              <Typography.Text type="secondary">无文件，请检查表与类型选择</Typography.Text>
+              <Typography.Text type="secondary">{t('generate.noFile')}</Typography.Text>
             )}
           </div>
         </Space>

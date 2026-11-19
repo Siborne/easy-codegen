@@ -2,9 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { App, Card, Input, Button, Select, Space, Divider } from 'antd';
 import { SaveOutlined, FolderOpenOutlined, DeleteOutlined } from '@ant-design/icons';
 import { api } from '../api';
+import { useI18n } from '../i18n';
 
 export default function TemplatePanel({ config, onSaved }) {
   const { message, modal } = App.useApp();
+  const { t } = useI18n();
   const [templates, setTemplates] = useState([]);
   const [name, setName] = useState('');
   const [selected, setSelected] = useState();
@@ -19,26 +21,41 @@ export default function TemplatePanel({ config, onSaved }) {
     loadTemplates();
   }, []);
 
-  const handleSave = async () => {
-    if (!name.trim()) {
-      message.warning('请输入模板名称');
-      return;
-    }
+  const performSave = async (trimmed) => {
     try {
-      const res = await api.saveTemplate(name.trim(), config || {});
+      const res = await api.saveTemplate(trimmed, config || {});
       message[res.success ? 'success' : 'error'](res.message);
       if (res.success) {
         setName('');
         loadTemplates();
       }
     } catch (e) {
-      message.error('保存模板失败: ' + e.message);
+      message.error(`${t('template.saveFailed')}: ${e.message}`);
     }
+  };
+
+  const handleSave = () => {
+    const trimmed = name.trim();
+    if (!trimmed) {
+      message.warning(t('template.nameRequired'));
+      return;
+    }
+    if (templates.includes(trimmed)) {
+      modal.confirm({
+        title: t('template.overwriteConfirm'),
+        content: trimmed,
+        okText: t('common.save'),
+        cancelText: t('common.cancel'),
+        onOk: () => performSave(trimmed)
+      });
+      return;
+    }
+    performSave(trimmed);
   };
 
   const handleLoad = async () => {
     if (!selected) {
-      message.warning('请先选择模板');
+      message.warning(t('template.selectRequired'));
       return;
     }
     try {
@@ -50,26 +67,26 @@ export default function TemplatePanel({ config, onSaved }) {
       const saveRes = await api.saveConfig(res.data || {});
       if (saveRes.success) {
         onSaved?.();
-        message.success('模板已加载并生效: ' + selected);
+        message.success(`${t('template.loaded')}: ${selected}`);
       } else {
-        message.error(saveRes.message || '加载失败');
+        message.error(saveRes.message || t('template.loadFailed'));
       }
     } catch (e) {
-      message.error('加载模板失败: ' + e.message);
+      message.error(`${t('template.loadError')}: ${e.message}`);
     }
   };
 
   const handleDelete = () => {
     if (!selected) {
-      message.warning('请先选择模板');
+      message.warning(t('template.selectRequired'));
       return;
     }
     modal.confirm({
-      title: '确认删除模板？',
+      title: t('template.deleteConfirm'),
       content: selected,
-      okText: '删除',
+      okText: t('template.delete'),
       okButtonProps: { danger: true },
-      cancelText: '取消',
+      cancelText: t('common.cancel'),
       onOk: async () => {
         try {
           const res = await api.deleteTemplate(selected);
@@ -79,24 +96,24 @@ export default function TemplatePanel({ config, onSaved }) {
             loadTemplates();
           }
         } catch (e) {
-          message.error('删除失败: ' + e.message);
+          message.error(`${t('template.deleteFailed')}: ${e.message}`);
         }
       }
     });
   };
 
   return (
-    <Card title="配置模板（保存/加载多套生成配置）">
+    <Card title={t('template.title')}>
       <Space direction="vertical" style={{ width: '100%' }} size="large">
         <Space wrap>
           <Input
-            placeholder="模板名称，如: 测试环境"
+            placeholder={t('template.namePlaceholder')}
             style={{ width: 220 }}
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
           <Button type="primary" icon={<SaveOutlined />} onClick={handleSave}>
-            保存当前配置为模板
+            {t('template.saveCurrent')}
           </Button>
         </Space>
 
@@ -104,17 +121,17 @@ export default function TemplatePanel({ config, onSaved }) {
 
         <Space wrap>
           <Select
-            placeholder="选择模板"
+            placeholder={t('template.selectPlaceholder')}
             style={{ width: 220 }}
             value={selected}
             onChange={setSelected}
-            options={templates.map((t) => ({ value: t, label: t }))}
+            options={templates.map((name) => ({ value: name, label: name }))}
           />
           <Button icon={<FolderOpenOutlined />} onClick={handleLoad}>
-            加载模板
+            {t('template.load')}
           </Button>
           <Button danger icon={<DeleteOutlined />} onClick={handleDelete}>
-            删除模板
+            {t('template.delete')}
           </Button>
         </Space>
       </Space>

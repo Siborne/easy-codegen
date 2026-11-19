@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { App, Card, Button, Table, Space, Tag } from 'antd';
 import { SyncOutlined } from '@ant-design/icons';
 import { api } from '../api';
+import { useI18n } from '../i18n';
 
 export default function TablePanel({ tables, selectedTables, onTablesLoaded, onSelectedChange }) {
   const { message } = App.useApp();
+  const { t } = useI18n();
   const [loading, setLoading] = useState(false);
 
   const handleLoad = async () => {
@@ -14,21 +16,21 @@ export default function TablePanel({ tables, selectedTables, onTablesLoaded, onS
       if (res.success) {
         onTablesLoaded?.(res.tables || []);
         onSelectedChange?.([]);
-        message.success('表结构已同步，共 ' + (res.tables || []).length + ' 张表');
+        message.success(t('table.synced', { count: (res.tables || []).length }));
       } else {
-        message.error(res.message || '加载表失败');
+        message.error(res.message || t('table.loadFailed'));
       }
     } catch (e) {
-      message.error('加载失败: ' + e.message);
+      message.error(`${t('table.loadError')}: ${e.message}`);
     } finally {
       setLoading(false);
     }
   };
 
   const columns = [
-    { title: '表名', dataIndex: 'tableName', render: (v) => <Tag>{v}</Tag> },
-    { title: 'Bean 名', dataIndex: 'beanName', render: (v) => <Tag color="blue">{v}</Tag> },
-    { title: '注释', dataIndex: 'comment', ellipsis: true }
+    { title: t('table.colTable'), dataIndex: 'tableName', render: (v) => <Tag>{v}</Tag> },
+    { title: t('table.colBean'), dataIndex: 'beanName', render: (v) => <Tag color="blue">{v}</Tag> },
+    { title: t('table.colComment'), dataIndex: 'comment', ellipsis: true }
   ];
 
   const rowSelection = {
@@ -38,11 +40,11 @@ export default function TablePanel({ tables, selectedTables, onTablesLoaded, onS
 
   return (
     <Card
-      title="数据表"
+      title={t('table.title')}
       extra={
         <Space>
           <Button icon={<SyncOutlined />} loading={loading} onClick={handleLoad}>
-            同步表结构
+            {t('table.sync')}
           </Button>
         </Space>
       }
@@ -55,10 +57,10 @@ export default function TablePanel({ tables, selectedTables, onTablesLoaded, onS
         columns={columns}
         rowSelection={rowSelection}
         pagination={tables.length > 10 ? { pageSize: 10, showSizeChanger: false } : false}
-        locale={{ emptyText: '点击右上角"同步表结构"获取当前数据库的表' }}
+        locale={{ emptyText: t('table.empty') }}
       />
       <div style={{ marginTop: 8, color: '#888', fontSize: 13 }}>
-        共 {tables.length} 张表，已选 {selectedTables.length} 张；未勾选任何表时生成全部表
+        {t('table.summary', { total: tables.length, selected: selectedTables.length })}
       </div>
     </Card>
   );

@@ -56,4 +56,6 @@ docker compose down                                 # 停止（-v 连数据卷�
 
 ## Notes
 
-（待补充：数据库结构、部署细节、已知限制等）
+- 前端 i18n：`easy-codegen-web/frontend/src/i18n.js`（中英两套文案）；语言偏好存 `localStorage` key `ecg-lang`，主题偏好 key `ecg-theme`。后端接口通过请求头 `X-Lang`（`zh`/`en`）返回对应语言的消息（见 `easy-codegen-web/src/main/java/org/flyingsparrow/web/util/I18nMessages.java`）。
+- 打包分发：本地便携版用 `package-desktop.bat`（jpackage app-image）；CI 发布用 `.github/workflows/release.yml`（push `v*` tag 触发，产出便携 zip、安装 exe、web exec jar 并发布 Release）。打包态启用 `spring.profiles.active=packaged`，配置/模板写入 `~/.easy-codegen/`，首次运行自动复制 classpath 的 `default-application.properties`。
+- 已知限制：桌面模块 JavaFX 依赖写死 `win` classifier，当前仅支持 Windows 桌面打包；服务端/团队部署走 Docker。

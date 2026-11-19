@@ -5,11 +5,15 @@ import org.flyingsparrow.utils.PropertiesUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -27,7 +31,13 @@ public class CodegenConfigManager {
     @Value("${codegen.config-file}")
     private String configFilePath;
 
+    private final Environment environment;
+
     private File configFile;
+
+    public CodegenConfigManager(Environment environment) {
+        this.environment = environment;
+    }
 
     @PostConstruct
     public void init() {
@@ -36,6 +46,15 @@ public class CodegenConfigManager {
             configFile = configFile.getCanonicalFile();
         } catch (IOException e) {
             logger.warn("解析配置文件路径失败，使用原始路径: {}", configFilePath, e);
+        }
+        // 仅打包分发模式（用户目录配置）需要首次运行时复制默认配置；
+        // 开发模式避免误在源码目录下创建配置文件。
+        if (environment.acceptsProfiles("packaged")) {
+            try {
+                ensureConfigFile();
+            } catch (IOException e) {
+                logger.warn("初始化默认配置失败: {}", configFile.getAbsolutePath(), e);
+            }
         }
         try {
             LinkedHashMap<String, String> map = ConfigFileStore.load(configFile);
@@ -48,6 +67,33 @@ public class CodegenConfigManager {
             }
         } catch (IOException e) {
             logger.error("加载配置文件失败: {}", configFile.getAbsolutePath(), e);
+        }
+    }
+
+    /**
+     * 首次运行时，若配置文件不存在，则从 classpath 复制一份干净的默认配置，
+     * 便于打包分发模式（用户目录）也能开箱即用。
+     */
+    private void ensureConfigFile() throws IOException {
+        if (configFile.exists()) {
+            return;
+        }
+        try (InputStream in = CodegenConfigManager.class.getClassLoader()
+                .getResourceAsStream("default-application.properties")) {
+            if (in == null) {
+                return;
+            }
+            if (configFile.getParentFile() != null) {
+                configFile.getParentFile().mkdirs();
+            }
+            try (OutputStream out = new FileOutputStream(configFile)) {
+                byte[] buffer = new byte[4096];
+                int read;
+                while ((read = in.read(buffer)) > 0) {
+                    out.write(buffer, 0, read);
+                }
+            }
+            logger.info("已初始化默认配置: {}", configFile.getAbsolutePath());
         }
     }
 

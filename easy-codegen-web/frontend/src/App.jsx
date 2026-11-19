@@ -1,51 +1,99 @@
-import React, { useEffect, useState } from 'react';
-import { ConfigProvider, App as AntApp, Layout, Tabs, Typography, Tag, Space, Button, Tooltip } from 'antd';
-import { CodeOutlined, SunOutlined, MoonOutlined } from '@ant-design/icons';
+import React, { lazy, Suspense, useEffect, useState } from 'react';
+import { ConfigProvider, App as AntApp, Tabs, Space, Tooltip, Spin, Alert, Button } from 'antd';
+import {
+  ThunderboltFilled,
+  SunOutlined,
+  MoonOutlined,
+  DatabaseOutlined,
+  SettingOutlined,
+  FolderOpenOutlined,
+  TableOutlined,
+  RocketOutlined,
+  SaveOutlined
+} from '@ant-design/icons';
 import zhCN from 'antd/locale/zh_CN';
+import enUS from 'antd/locale/en_US';
 import { theme as antTheme } from 'antd';
 import { api } from './api';
-import ConnectionPanel from './components/ConnectionPanel';
-import GenConfigPanel from './components/GenConfigPanel';
-import OutputPanel from './components/OutputPanel';
-import TablePanel from './components/TablePanel';
-import GeneratePanel from './components/GeneratePanel';
-import TemplatePanel from './components/TemplatePanel';
+import { useI18n } from './i18n';
 
-const { Header, Content } = Layout;
-const THEME_KEY = 'easy-codegen-theme';
+const ConnectionPanel = lazy(() => import('./components/ConnectionPanel'));
+const GenConfigPanel = lazy(() => import('./components/GenConfigPanel'));
+const OutputPanel = lazy(() => import('./components/OutputPanel'));
+const TablePanel = lazy(() => import('./components/TablePanel'));
+const GeneratePanel = lazy(() => import('./components/GeneratePanel'));
+const TemplatePanel = lazy(() => import('./components/TemplatePanel'));
+
+const THEME_KEY = 'ecg-theme';
 
 export default function App() {
-  const [theme, setTheme] = useState(() => localStorage.getItem(THEME_KEY) || 'light');
+  const { lang } = useI18n();
+  const [theme, setTheme] = useState(
+    () => document.documentElement.getAttribute('data-theme') || 'light'
+  );
 
   useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem(THEME_KEY, theme);
   }, [theme]);
 
+  const isDark = theme === 'dark';
+
   return (
     <ConfigProvider
-      locale={zhCN}
-      theme={{ algorithm: theme === 'dark' ? antTheme.darkAlgorithm : antTheme.defaultAlgorithm }}
+      locale={lang === 'en' ? enUS : zhCN}
+      theme={{
+        algorithm: isDark ? antTheme.darkAlgorithm : antTheme.defaultAlgorithm,
+        token: {
+          colorPrimary: isDark ? '#818cf8' : '#4f46e5',
+          colorInfo: isDark ? '#818cf8' : '#4f46e5',
+          colorLink: isDark ? '#818cf8' : '#4f46e5',
+          colorBgLayout: isDark ? '#0a0e1a' : '#f7f8fc',
+          colorBgContainer: isDark ? '#131b31' : '#ffffff',
+          colorBgElevated: isDark ? '#131b31' : '#ffffff',
+          colorText: isDark ? '#e8ecf7' : '#101828',
+          colorTextSecondary: isDark ? '#a6b0c8' : '#55627a',
+          colorBorder: isDark ? '#1e2740' : '#e5e9f2',
+          colorBorderSecondary: isDark ? '#1e2740' : '#e5e9f2',
+          borderRadius: 12,
+          fontFamily:
+            '"Inter", "PingFang SC", "Microsoft YaHei", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
+        }
+      }}
     >
       <AntApp>
-        <Panel theme={theme} onToggleTheme={() => setTheme(theme === 'dark' ? 'light' : 'dark')} />
+        <Panel theme={theme} onToggleTheme={() => setTheme(isDark ? 'light' : 'dark')} />
       </AntApp>
     </ConfigProvider>
   );
 }
 
 function Panel({ theme, onToggleTheme }) {
+  const { t, lang, setLang } = useI18n();
   const [config, setConfig] = useState(null);
-  const [configFile, setConfigFile] = useState('');
   const [tables, setTables] = useState([]);
   const [selectedTables, setSelectedTables] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
+
+  const loadConfig = () => {
+    setLoading(true);
+    setLoadError('');
+    return api
+      .getConfig()
+      .then((res) => {
+        if (res.success) {
+          setConfig(res.data || {});
+        } else {
+          setLoadError(res.message || t('common.loadFailed'));
+        }
+      })
+      .catch((e) => setLoadError(`${t('common.loadFailed')}: ${e.message}`))
+      .finally(() => setLoading(false));
+  };
 
   useEffect(() => {
-    api.getConfig().then((res) => {
-      if (res.success) {
-        setConfig(res.data || {});
-        setConfigFile(res.file || '');
-      }
-    });
+    loadConfig();
   }, []);
 
   const refreshConfig = () => {
@@ -55,74 +103,183 @@ function Panel({ theme, onToggleTheme }) {
     });
   };
 
-  return (
-    <Layout style={{ minHeight: '100vh' }}>
-      <Header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Space align="center">
-          <CodeOutlined style={{ color: '#40a9ff', fontSize: 24 }} />
-          <Typography.Title level={4} style={{ color: '#fff', margin: 0 }}>
-            Easy-Codegen 可视化面板
-          </Typography.Title>
-        </Space>
-        <Space>
-          {configFile && (
-            <Tag color="blue" style={{ fontSize: 12, maxWidth: 480, overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              配置文件: {configFile}
-            </Tag>
-          )}
-          <Tooltip title={theme === 'dark' ? '切换到亮色' : '切换到暗色'}>
-            <Button
-              type="text"
-              icon={theme === 'dark' ? <SunOutlined /> : <MoonOutlined />}
-              onClick={onToggleTheme}
-              style={{ color: '#fff' }}
-            />
-          </Tooltip>
-        </Space>
-      </Header>
-      <Content style={{ padding: 24, maxWidth: 1280, width: '100%', margin: '0 auto' }}>
-        <Tabs
-          items={[
-            {
-              key: 'connection',
-              label: '数据库连接',
-              children: <ConnectionPanel config={config} onSaved={refreshConfig} />
-            },
-            {
-              key: 'genconfig',
-              label: '生成参数',
-              children: <GenConfigPanel config={config} onSaved={refreshConfig} />
-            },
-            {
-              key: 'output',
-              label: '输出与包名',
-              children: <OutputPanel config={config} onSaved={refreshConfig} />
-            },
-            {
-              key: 'tables',
-              label: '数据表',
-              children: (
+  const Loading = () => (
+    <div className="panel-loading">
+      <Spin size="large" />
+    </div>
+  );
+
+  const renderBody = () => {
+    if (loading) return <Loading />;
+    if (loadError) {
+      return (
+        <Alert
+          type="error"
+          showIcon
+          message={loadError}
+          action={
+            <Button size="small" onClick={loadConfig}>
+              {t('common.retry')}
+            </Button>
+          }
+        />
+      );
+    }
+    return (
+      <Tabs
+        items={[
+          {
+            key: 'connection',
+            label: (
+              <Space size={6}>
+                <DatabaseOutlined />
+                {t('tab.connection')}
+              </Space>
+            ),
+            children: (
+              <Suspense fallback={<Loading />}>
+                <ConnectionPanel config={config} onSaved={refreshConfig} />
+              </Suspense>
+            )
+          },
+          {
+            key: 'genconfig',
+            label: (
+              <Space size={6}>
+                <SettingOutlined />
+                {t('tab.genConfig')}
+              </Space>
+            ),
+            children: (
+              <Suspense fallback={<Loading />}>
+                <GenConfigPanel config={config} onSaved={refreshConfig} />
+              </Suspense>
+            )
+          },
+          {
+            key: 'output',
+            label: (
+              <Space size={6}>
+                <FolderOpenOutlined />
+                {t('tab.output')}
+              </Space>
+            ),
+            children: (
+              <Suspense fallback={<Loading />}>
+                <OutputPanel config={config} onSaved={refreshConfig} />
+              </Suspense>
+            )
+          },
+          {
+            key: 'tables',
+            label: (
+              <Space size={6}>
+                <TableOutlined />
+                {t('tab.tables')}
+              </Space>
+            ),
+            children: (
+              <Suspense fallback={<Loading />}>
                 <TablePanel
                   tables={tables}
                   selectedTables={selectedTables}
                   onTablesLoaded={setTables}
                   onSelectedChange={setSelectedTables}
                 />
-              )
-            },
-            {
-              key: 'generate',
-              label: '代码生成',
-              children: <GeneratePanel config={config} selectedTables={selectedTables} />
-            },
-            {
-              key: 'templates',
-              label: '配置模板',
-              children: <TemplatePanel config={config} onSaved={refreshConfig} />
-            }
-          ]}
-        />
-      </Content>
-    </Layout>
+              </Suspense>
+            )
+          },
+          {
+            key: 'generate',
+            label: (
+              <Space size={6}>
+                <RocketOutlined />
+                {t('tab.generate')}
+              </Space>
+            ),
+            children: (
+              <Suspense fallback={<Loading />}>
+                <GeneratePanel config={config} selectedTables={selectedTables} />
+              </Suspense>
+            )
+          },
+          {
+            key: 'templates',
+            label: (
+              <Space size={6}>
+                <SaveOutlined />
+                {t('tab.templates')}
+              </Space>
+            ),
+            children: (
+              <Suspense fallback={<Loading />}>
+                <TemplatePanel config={config} onSaved={refreshConfig} />
+              </Suspense>
+            )
+          }
+        ]}
+      />
+    );
+  };
+
+  return (
+    <div className="app-shell">
+      <header className="site-header">
+        <div className="container">
+          <div className="brand">
+            <span className="brand-mark">
+              <ThunderboltFilled />
+            </span>
+            <span>
+              Easy-Codegen
+              <div className="brand-sub">{t('app.brandSub')}</div>
+            </span>
+          </div>
+          <div className="header-right">
+            <div className="lang-switch">
+              <button
+                type="button"
+                className={lang !== 'en' ? 'lang-option active' : 'lang-option'}
+                aria-pressed={lang !== 'en'}
+                onClick={() => setLang('zh')}
+              >
+                {t('lang.zh')}
+              </button>
+              <button
+                type="button"
+                className={lang === 'en' ? 'lang-option active' : 'lang-option'}
+                aria-pressed={lang === 'en'}
+                onClick={() => setLang('en')}
+              >
+                {t('lang.en')}
+              </button>
+            </div>
+            <Tooltip title={theme === 'dark' ? t('app.themeLight') : t('app.themeDark')}>
+              <button
+                type="button"
+                className="icon-btn"
+                aria-label={theme === 'dark' ? t('app.themeLight') : t('app.themeDark')}
+                onClick={onToggleTheme}
+              >
+                {theme === 'dark' ? <SunOutlined /> : <MoonOutlined />}
+              </button>
+            </Tooltip>
+          </div>
+        </div>
+      </header>
+
+      <main className="panel-section">
+        <div className="container">{renderBody()}</div>
+      </main>
+
+      <footer className="site-footer">
+        <div className="container">
+          <span>
+            <strong>Easy-Codegen</strong> · {t('app.footerDesc')}
+          </span>
+          <span>{t('app.footerTagline')}</span>
+        </div>
+      </footer>
+    </div>
   );
 }

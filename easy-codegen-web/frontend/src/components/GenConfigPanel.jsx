@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { App, Card, Form, Input, Select, Button, Row, Col } from 'antd';
 import { SaveOutlined } from '@ant-design/icons';
 import { api } from '../api';
+import { useI18n } from '../i18n';
 
 const CONFIG_KEYS = [
   'author.comment',
@@ -22,8 +23,11 @@ const CONFIG_KEYS = [
 
 export default function GenConfigPanel({ config, onSaved }) {
   const { message } = App.useApp();
+  const { t } = useI18n();
   const [form] = Form.useForm();
   const [saving, setSaving] = useState(false);
+
+  const label = (base, key) => `${t(base)} (${key})`;
 
   useEffect(() => {
     if (config) {
@@ -42,12 +46,12 @@ export default function GenConfigPanel({ config, onSaved }) {
       const res = await api.saveConfig(data);
       if (res.success) {
         onSaved?.();
-        message.success('配置已保存并生效');
+        message.success(t('common.saved'));
       } else {
-        message.error(res.message || '保存失败');
+        message.error(res.message || t('common.saveFailed'));
       }
     } catch (e) {
-      message.error('保存失败: ' + e.message);
+      message.error(`${t('common.saveFailed')}: ${e.message}`);
     } finally {
       setSaving(false);
     }
@@ -55,22 +59,22 @@ export default function GenConfigPanel({ config, onSaved }) {
 
   return (
     <Card
-      title="生成参数"
+      title={t('gen.title')}
       extra={
         <Button type="primary" icon={<SaveOutlined />} loading={saving} onClick={handleSave}>
-          保存配置
+          {t('common.save')}
         </Button>
       }
     >
       <Form form={form} layout="vertical">
         <Row gutter={16}>
           <Col span={8}>
-            <Form.Item name="author.comment" label="作者 (author.comment)">
+            <Form.Item name="author.comment" label={label('gen.author', 'author.comment')}>
               <Input />
             </Form.Item>
           </Col>
           <Col span={8}>
-            <Form.Item name="ignore.table.prefix" label="忽略表名前缀 (ignore.table.prefix)">
+            <Form.Item name="ignore.table.prefix" label={label('gen.ignoreTablePrefix', 'ignore.table.prefix')}>
               <Select
                 options={[
                   { value: 'false', label: 'false' },
@@ -80,62 +84,62 @@ export default function GenConfigPanel({ config, onSaved }) {
             </Form.Item>
           </Col>
           <Col span={8}>
-            <Form.Item name="ignore.bean.tojson.field" label="忽略 JSON 字段 (ignore.bean.tojson.field)">
+            <Form.Item name="ignore.bean.tojson.field" label={label('gen.ignoreJsonField', 'ignore.bean.tojson.field')}>
               <Input placeholder="companyId,status" />
             </Form.Item>
           </Col>
           <Col span={12}>
-            <Form.Item name="ignore.bean.tojson.expression" label="忽略注解 (ignore.bean.tojson.expression)">
+            <Form.Item name="ignore.bean.tojson.expression" label={label('gen.ignoreAnnotation', 'ignore.bean.tojson.expression')}>
               <Input placeholder="@JsonIgnore" />
             </Form.Item>
           </Col>
           <Col span={12}>
-            <Form.Item name="ignore.bean.tojson.class" label="忽略注解 import (ignore.bean.tojson.class)">
+            <Form.Item name="ignore.bean.tojson.class" label={label('gen.ignoreAnnotationImport', 'ignore.bean.tojson.class')}>
               <Input placeholder="import com.fasterxml.jackson.annotation.JsonIgnore" />
             </Form.Item>
           </Col>
           <Col span={12}>
-            <Form.Item name="bean.date.format.expression" label="日期序列化表达式 (bean.date.format.expression)">
+            <Form.Item name="bean.date.format.expression" label={label('gen.dateFormat', 'bean.date.format.expression')}>
               <Input />
             </Form.Item>
           </Col>
           <Col span={12}>
-            <Form.Item name="bean.date.format.class" label="日期序列化 import (bean.date.format.class)">
+            <Form.Item name="bean.date.format.class" label={label('gen.dateFormatImport', 'bean.date.format.class')}>
               <Input />
             </Form.Item>
           </Col>
           <Col span={12}>
-            <Form.Item name="bean.date.unformat.expression" label="日期反序列化表达式 (bean.date.unformat.expression)">
+            <Form.Item name="bean.date.unformat.expression" label={label('gen.dateUnformat', 'bean.date.unformat.expression')}>
               <Input />
             </Form.Item>
           </Col>
           <Col span={12}>
-            <Form.Item name="bean.date.unformat.class" label="日期反序列化 import (bean.date.unformat.class)">
+            <Form.Item name="bean.date.unformat.class" label={label('gen.dateUnformatImport', 'bean.date.unformat.class')}>
               <Input />
             </Form.Item>
           </Col>
           <Col span={8}>
-            <Form.Item name="suffix.bean.query" label="查询 Bean 后缀 (suffix.bean.query)">
+            <Form.Item name="suffix.bean.query" label={label('gen.querySuffix', 'suffix.bean.query')}>
               <Input />
             </Form.Item>
           </Col>
           <Col span={8}>
-            <Form.Item name="suffix.bean.query.fuzzy" label="模糊搜索后缀 (suffix.bean.query.fuzzy)">
+            <Form.Item name="suffix.bean.query.fuzzy" label={label('gen.fuzzySuffix', 'suffix.bean.query.fuzzy')}>
               <Input />
             </Form.Item>
           </Col>
           <Col span={8}>
-            <Form.Item name="suffix.bean.query.time.start" label="开始时间后缀 (suffix.bean.query.time.start)">
+            <Form.Item name="suffix.bean.query.time.start" label={label('gen.timeStartSuffix', 'suffix.bean.query.time.start')}>
               <Input />
             </Form.Item>
           </Col>
           <Col span={8}>
-            <Form.Item name="suffix.bean.query.time.end" label="结束时间后缀 (suffix.bean.query.time.end)">
+            <Form.Item name="suffix.bean.query.time.end" label={label('gen.timeEndSuffix', 'suffix.bean.query.time.end')}>
               <Input />
             </Form.Item>
           </Col>
           <Col span={8}>
-            <Form.Item name="suffix.mappers" label="Mapper 后缀 (suffix.mappers)">
+            <Form.Item name="suffix.mappers" label={label('gen.mapperSuffix', 'suffix.mappers')}>
               <Input />
             </Form.Item>
           </Col>
